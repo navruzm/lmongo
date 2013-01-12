@@ -55,13 +55,13 @@ class Database
     {
         if ( ! is_null($this->connection)) return;
 
-        $conn = new MongoClient($this->host . ':' . $this->port);
+        $conn = new \MongoClient($this->host . ':' . $this->port);
         $this->connection = $conn->{$this->database};
     }
 
     
     public function __get($name)
     {
-        return new MongoCollection($this->db, $name);
+        return new \MongoCollection($this->connection, $name);
     }
 }

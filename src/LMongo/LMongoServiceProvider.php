@@ -20,7 +20,7 @@ class LMongoServiceProvider extends ServiceProvider {
 	{
 		$this->app['mongo'] = $this->app->share(function($app)
 		{
-			return new LMongo($app);
+			return new LMongoManager($app);
 		});
 	}
 
