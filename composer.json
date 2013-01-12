@@ -1,0 +1,19 @@
+{
+    "name": "navruzm/lmongo",
+    "type": "library",
+    "description": "MongoDB service provider for Laravel 4",
+    "keywords": ["L4", "MongoDB", "Laravel 4", "Laravel"],
+    "homepage": "http://github.com/navruzm/lmongo/",
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "authors": [
+        {
+            "name": "Mustafa Navruz",
+            "email": "mustafanavruz@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-0": { "LMongo": "src/" }
+    }
+}

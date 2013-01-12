@@ -1,0 +1,1 @@
+MongoDB service provider for Laravel 4
