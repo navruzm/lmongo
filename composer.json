@@ -4,6 +4,7 @@
     "description": "MongoDB service provider for Laravel 4",
     "keywords": ["L4", "MongoDB", "Laravel 4", "Laravel"],
     "homepage": "http://github.com/navruzm/lmongo/",
+    "license": "MIT",
     "require": {
         "php": ">=5.3.0"
     },
