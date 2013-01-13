@@ -59,7 +59,22 @@ class Database
         $this->connection = $conn->{$this->database};
     }
 
+    /**
+     * return MongoDB object
+     *
+     * @return \MongoDB
+     */
+    public function getMongoDBObject()
+    {
+        return $this->connection;
+    }
     
+    /**
+     * Dynamically pass collection name to MongoCollection and return it.
+     *
+     * @param  string  $name
+     * @return \MongoCollection
+     */
     public function __get($name)
     {
         return new \MongoCollection($this->connection, $name);
