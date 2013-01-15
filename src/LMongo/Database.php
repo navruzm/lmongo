@@ -25,7 +25,14 @@ class Database
     protected $database;
 
     /**
-     * The MongoDB connection handler.
+     * The MongoDB database handler.
+     *
+     * @var resource
+     */
+    protected $db;
+
+    /**
+     * The MongoClient connection handler.
      *
      * @var resource
      */
@@ -55,8 +62,8 @@ class Database
     {
         if ( ! is_null($this->connection)) return;
 
-        $conn = new \MongoClient($this->host . ':' . $this->port);
-        $this->connection = $conn->{$this->database};
+        $this->connection = new \MongoClient($this->host . ':' . $this->port);
+        $this->db = $this->connection->{$this->database};
     }
 
     /**
@@ -65,6 +72,16 @@ class Database
      * @return \MongoDB
      */
     public function getMongoDBObject()
+    {
+        return $this->db;
+    }
+
+    /**
+     * return MongoClient object
+     *
+     * @return \MongoClient
+     */
+    public function getMongoClientObject()
     {
         return $this->connection;
     }
