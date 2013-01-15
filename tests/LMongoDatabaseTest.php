@@ -14,10 +14,10 @@ class LMongoDatabaseTest extends PHPUnit_Framework_TestCase {
 	{
 		parent::setUp();
 
-		$conn = new Database('localhost', 27017, 'lmongotestdb');
-		$conn->connect();
-		$this->connection = $conn->getMongoClientObject();
-		$this->db = $conn->getMongoDBObject();
+		$this->conn = new Database('localhost', 27017, 'lmongotestdb');
+		$this->conn->connect();
+		$this->connection = $this->conn->getMongoClientObject();
+		$this->db = $this->conn->getMongoDBObject();
 	}
 
 	function testInstanceOfMongoDB() 
@@ -40,11 +40,17 @@ class LMongoDatabaseTest extends PHPUnit_Framework_TestCase {
 		$this->assertInstanceOf('MongoCursor', $this->db->testcollection->find());
 	}
 
+	function testMagicDatabaseObjectMethod() 
+	{
+		$this->assertInstanceOf('MongoCollection', $this->conn->testcollection);
+	}
+
 	function tearDown()
 	{    
 		parent::tearDown();
 
-		if ($this->db) {
+		if ($this->db) 
+		{
 			$this->db->drop();
 		}
 	} 

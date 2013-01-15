@@ -94,6 +94,6 @@ class Database
      */
     public function __get($name)
     {
-        return new \MongoCollection($this->connection, $name);
+        return new \MongoCollection($this->db, $name);
     }
 }
