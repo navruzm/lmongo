@@ -63,10 +63,17 @@ $items = $LMongo->collection_name->find(array('key', 'value'))->limit(5);
 
 $LMongo->collection_name->remove(array('key', 'value'));
 ```
-If you need the [MongoDB](http://php.net/manual/en/class.mongodb.php) object, you can get like this:
+Get the [MongoDB](http://php.net/manual/en/class.mongodb.php) object:
 
 ```php
 $mongodb = $LMongo->getMongoDBObject();
 
 $collection_names = $mongodb->getCollectionNames();
+```
+Get the [MongoClient](http://php.net/manual/en/class.mongoclient.php) object:
+
+```php
+$mongo = $LMongo->getMongoClientObject();
+
+$databases = $mongo->listDBs();
 ```
