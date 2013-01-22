@@ -1,4 +1,4 @@
-LMongo
+LMongo [![Build Status](https://secure.travis-ci.org/navruzm/lmongo.png?branch=master)](https://travis-ci.org/navruzm/lmongo)
 ==============
 
 LMongo is [MongoDB](http://www.mongodb.org/) service provider for [Laravel 4](http://laravel.com/).
@@ -77,3 +77,8 @@ $mongo = $LMongo->getMongoClientObject();
 
 $databases = $mongo->listDBs();
 ```
+
+TODO
+====
+Query Builder
+Base Model
