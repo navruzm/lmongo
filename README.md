@@ -1,7 +1,7 @@
 LMongo [![Build Status](https://secure.travis-ci.org/navruzm/lmongo.png?branch=master)](https://travis-ci.org/navruzm/lmongo)
 ==============
 
-LMongo is [MongoDB](http://www.mongodb.org/) service provider for [Laravel 4](http://laravel.com/).
+LMongo is [MongoDB](http://www.mongodb.org/) Query Builder and service provider for [Laravel 4](http://laravel.com/).
 
 Installation
 ============
@@ -41,9 +41,11 @@ Finally you need to add the MongoDB database configuration to the `config/databa
         )
     ),
 ```
-
 Usage
 =====
+
+Basic Usage
+-----------
 You may get a MongoDB instance by calling the `LMongo::connection` method:
 
 ```php
@@ -80,5 +82,4 @@ $databases = $mongo->listDBs();
 
 TODO
 ====
-Query Builder
-Base Model
+* Base Model
