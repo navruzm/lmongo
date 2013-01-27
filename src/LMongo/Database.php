@@ -85,7 +85,7 @@ class Database
     {
         return $this->connection;
     }
-    
+
     /**
      * Dynamically pass collection name to MongoCollection and return it.
      *
@@ -95,5 +95,18 @@ class Database
     public function __get($name)
     {
         return new \MongoCollection($this->db, $name);
+    }
+
+    /**
+     * Return new Query Builder instance
+     *
+     * @param  string $collection
+     * @return \LMongo\Query\Builder
+     */
+    public function collection($collection)
+    {
+        $builder = new Query\Builder($this->db);
+
+        return $builder->setCollection($collection);
     }
 }
