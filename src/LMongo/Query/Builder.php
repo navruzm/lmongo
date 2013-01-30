@@ -198,7 +198,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereLt($column, int $value)
+	public function whereLt($column, $value)
 	{
 		return $this->where($column, array('$lt' => $value), 'first');
 	}
@@ -210,7 +210,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function andWhereLt($column, int $value)
+	public function andWhereLt($column, $value)
 	{
 		return $this->where($column, array('$lt' => $value), '$and');
 	}
@@ -222,7 +222,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function orWhereLt($column, int $value)
+	public function orWhereLt($column, $value)
 	{
 		return $this->where($column, array('$lt' => $value), '$or');
 	}
@@ -234,7 +234,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function norWhereLt($column, int $value)
+	public function norWhereLt($column, $value)
 	{
 		return $this->where($column, array('$lt' => $value), '$nor');
 	}
@@ -246,7 +246,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereLte($column, int $value)
+	public function whereLte($column, $value)
 	{
 		return $this->where($column, array('$lte' => $value), 'first');
 	}
@@ -258,7 +258,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function andWhereLte($column, int $value)
+	public function andWhereLte($column, $value)
 	{
 		return $this->where($column, array('$lte' => $value), '$and');
 	}
@@ -270,7 +270,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function orWhereLte($column, int $value)
+	public function orWhereLte($column, $value)
 	{
 		return $this->where($column, array('$lte' => $value), '$or');
 	}
@@ -282,7 +282,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function norWhereLte($column, int $value)
+	public function norWhereLte($column, $value)
 	{
 		return $this->where($column, array('$lte' => $value), '$nor');
 	}
@@ -294,7 +294,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereGt($column, int $value)
+	public function whereGt($column, $value)
 	{
 		return $this->where($column, array('$gt' => $value), 'first');
 	}
@@ -306,7 +306,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function andWhereGt($column, int $value)
+	public function andWhereGt($column, $value)
 	{
 		return $this->where($column, array('$gt' => $value), '$and');
 	}
@@ -318,7 +318,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function orWhereGt($column, int $value)
+	public function orWhereGt($column, $value)
 	{
 		return $this->where($column, array('$gt' => $value), '$or');
 	}
@@ -330,7 +330,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function norWhereGt($column, int $value)
+	public function norWhereGt($column, $value)
 	{
 		return $this->where($column, array('$gt' => $value), '$nor');
 	}
@@ -342,7 +342,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereGte($column, int $value)
+	public function whereGte($column, $value)
 	{
 		return $this->where($column, array('$gte' => $value), 'first');
 	}
@@ -354,7 +354,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function andWhereGte($column, int $value)
+	public function andWhereGte($column, $value)
 	{
 		return $this->where($column, array('$gte' => $value), '$and');
 	}
@@ -366,7 +366,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function orWhereGte($column, int $value)
+	public function orWhereGte($column, $value)
 	{
 		return $this->where($column, array('$gte' => $value), '$or');
 	}
@@ -378,7 +378,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function norWhereGte($column, int $value)
+	public function norWhereGte($column, $value)
 	{
 		return $this->where($column, array('$gte' => $value), '$nor');
 	}
@@ -391,7 +391,7 @@ class Builder {
 	 * @param  int     $max
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereBetween($column, int $min, int $max)
+	public function whereBetween($column, $min, $max)
 	{
 		return $this->where($column, array('$gt' => $min, '$lt' => $max), 'first');
 	}
@@ -404,7 +404,7 @@ class Builder {
 	 * @param  int     $max
 	 * @return LMongo\Query\Builder
 	 */
-	public function andWhereBetween($column, int $min, int $max)
+	public function andWhereBetween($column, $min, $max)
 	{
 		return $this->where($column, array('$gt' => $min, '$lt' => $max), '$and');
 	}
@@ -417,7 +417,7 @@ class Builder {
 	 * @param  int     $max
 	 * @return LMongo\Query\Builder
 	 */
-	public function orWhereBetween($column, int $min, int $max)
+	public function orWhereBetween($column, $min, $max)
 	{
 		return $this->where($column, array('$gt' => $min, '$lt' => $max), '$or');
 	}
@@ -430,7 +430,7 @@ class Builder {
 	 * @param  int     $max
 	 * @return LMongo\Query\Builder
 	 */
-	public function norWhereBetween($column, int $min, int $max)
+	public function norWhereBetween($column, $min, $max)
 	{
 		return $this->where($column, array('$gt' => $min, '$lt' => $max), '$nor');
 	}
@@ -630,7 +630,7 @@ class Builder {
 	 * @param  int     $type
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereType($column, int $type)
+	public function whereType($column, $type)
 	{
 		return $this->where($column, array('$type' => $type), 'first');
 	}
@@ -679,7 +679,7 @@ class Builder {
 	 * @param  int     $remainder
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereMod($column, int $divisor, int $remainder)
+	public function whereMod($column, $divisor, $remainder)
 	{
 		return $this->where($column, array('$mod' => array($divisor, $remainder)), 'first');
 	}
@@ -692,7 +692,7 @@ class Builder {
 	 * @param  int     $remainder
 	 * @return LMongo\Query\Builder
 	 */
-	public function andWhereMod($column, int $divisor, int $remainder)
+	public function andWhereMod($column, $divisor, $remainder)
 	{
 		return $this->where($column, array('$mod' => array($divisor, $remainder)), '$and');
 	}
@@ -705,7 +705,7 @@ class Builder {
 	 * @param  int     $remainder
 	 * @return LMongo\Query\Builder
 	 */
-	public function orWhereMod($column, int $divisor, int $remainder)
+	public function orWhereMod($column, $divisor, $remainder)
 	{
 		return $this->where($column, array('$mod' => array($divisor, $remainder)), '$or');
 	}
@@ -718,7 +718,7 @@ class Builder {
 	 * @param  int     $remainder
 	 * @return LMongo\Query\Builder
 	 */
-	public function norWhereMod($column, int $divisor, int $remainder)
+	public function norWhereMod($column, $divisor, $remainder)
 	{
 		return $this->where($column, array('$mod' => array($divisor, $remainder)), '$nor');
 	}
@@ -871,7 +871,7 @@ class Builder {
 	 * @param  float   $lat
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereNear($column, float $lon, float $lat)
+	public function whereNear($column, $lon, $lat)
 	{
 		return $this->where($column, array('$near' => array($lon, $lat)), 'first');
 	}
@@ -884,7 +884,7 @@ class Builder {
 	 * @param  float   $lat
 	 * @return LMongo\Query\Builder
 	 */
-	public function andWhereNear($column, float $lon, float $lat)
+	public function andWhereNear($column, $lon, $lat)
 	{
 		return $this->where($column, array('$near' => array($lon, $lat)), '$and');
 	}
@@ -897,7 +897,7 @@ class Builder {
 	 * @param  float   $lat
 	 * @return LMongo\Query\Builder
 	 */
-	public function orWhereNear($column, float $lon, float $lat)
+	public function orWhereNear($column, $lon, $lat)
 	{
 		return $this->where($column, array('$near' => array($lon, $lat)), '$or');
 	}
@@ -910,7 +910,7 @@ class Builder {
 	 * @param  float   $lat
 	 * @return LMongo\Query\Builder
 	 */
-	public function norWhereNear($column, float $lon, float $lat)
+	public function norWhereNear($column, $lon, $lat)
 	{
 		return $this->where($column, array('$near' => array($lon, $lat)), '$nor');
 	}
@@ -920,12 +920,12 @@ class Builder {
 	 *
 	 * @param  string  $column
 	 * @param  string  $shape
-	 * @param  array   $operators
+	 * @param  array   $coords
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereWithin($column, $shape, $operators = array())
+	public function whereWithin($column, $shape, array $coords)
 	{
-		return $this->where($column, array('$within' => $shape) + $operators, 'first');
+		return $this->where($column, array('$within' => array('$'.$shape => $coords)), 'first');
 	}
 
 	/**
@@ -933,12 +933,12 @@ class Builder {
 	 *
 	 * @param  string  $column
 	 * @param  string  $shape
-	 * @param  array   $operators
+	 * @param  array   $coords
 	 * @return LMongo\Query\Builder
 	 */
-	public function andWhereWithin($column, $shape, $operators = array())
+	public function andWhereWithin($column, $shape, array $coords)
 	{
-		return $this->where($column, array('$within' => $shape) + $operators, '$and');
+		return $this->where($column, array('$within' => array('$'.$shape => $coords)), '$and');
 	}
 
 	/**
@@ -946,12 +946,12 @@ class Builder {
 	 *
 	 * @param  string  $column
 	 * @param  string  $shape
-	 * @param  array   $operators
+	 * @param  array   $coords
 	 * @return LMongo\Query\Builder
 	 */
-	public function orWhereWithin($column, $shape, $operators = array())
+	public function orWhereWithin($column, $shape, array $coords)
 	{
-		return $this->where($column, array('$within' => $shape) + $operators, '$or');
+		return $this->where($column, array('$within' => array('$'.$shape => $coords)), '$or');
 	}
 
 	/**
@@ -959,12 +959,12 @@ class Builder {
 	 *
 	 * @param  string  $column
 	 * @param  string  $shape
-	 * @param  array   $operators
+	 * @param  array   $coords
 	 * @return LMongo\Query\Builder
 	 */
-	public function norWhereWithin($column, $shape, $operators = array())
+	public function norWhereWithin($column, $shape, array $coords)
 	{
-		return $this->where($column, array('$within' => $shape) + $operators, '$nor');
+		return $this->where($column, array('$within' => array('$'.$shape => $coords)), '$nor');
 	}
 
 	/**
@@ -974,7 +974,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereSize($column, int $value)
+	public function whereSize($column, $value)
 	{
 		return $this->where($column, array('$size' => $value), 'first');
 	}
@@ -986,7 +986,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function andWhereSize($column, int $value)
+	public function andWhereSize($column, $value)
 	{
 		return $this->where($column, array('$size' => $value), '$and');
 	}
@@ -998,7 +998,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function orWhereSize($column, int $value)
+	public function orWhereSize($column, $value)
 	{
 		return $this->where($column, array('$size' => $value), '$or');
 	}
@@ -1010,7 +1010,7 @@ class Builder {
 	 * @param  int     $value
 	 * @return LMongo\Query\Builder
 	 */
-	public function norWhereSize($column, int $value)
+	public function norWhereSize($column, $value)
 	{
 		return $this->where($column, array('$size' => $value), '$nor');
 	}
@@ -1070,7 +1070,8 @@ class Builder {
 			if(1 >= count($wheres))
 			{
 				$key = key($wheres)?: '$and';
-				$wheres[$key][] = $where;
+				isset($wheres[$key]) OR $wheres[$key] = array();
+				array_unshift($wheres[$key], $where);
 			}
 			else
 			{
@@ -1217,7 +1218,7 @@ class Builder {
 	 */
 	public function first($columns = array())
 	{
-		$results = $this->get($columns)->toArray();
+		$results = $this->take(1)->get($columns)->toArray();
 
 		return current($results);
 	}
@@ -1454,7 +1455,7 @@ class Builder {
 	 */
 	public function decrement($column, $amount = 1)
 	{
-		$update = array('$dec' => array($column => $amount));
+		$update = array('$inc' => array($column => -$amount));
 
 		$result = $this->connection->{$this->collection}->update($this->compileWheres($this), $update, array('multiple' => true));
 
@@ -1492,7 +1493,14 @@ class Builder {
 	 */
 	public function truncate()
 	{
-		$this->connection->{$this->collection}->drop();
+		$result = $this->connection->{$this->collection}->drop();
+
+		if(1 == (int) $result['ok'])
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -1502,7 +1510,7 @@ class Builder {
 	 */
 	public function remove()
 	{
-		$this->delete();
+		return $this->delete();
 	}
 
 	/**
@@ -1552,6 +1560,11 @@ class Builder {
 		foreach ($this->columns as $column) 
 		{
 			$columns[$column] = 1;
+		}
+
+		if(count($columns) AND ! isset($columns['_id']))
+		{
+			$columns['_id'] = false;
 		}
 
 		return $columns;
