@@ -17,7 +17,6 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 	{
 		$this->conn = new Database('localhost', 27017, 'lmongotestdb');
 		$this->conn->connect();
-		$this->connection = $this->conn->getMongoClientObject();
 		$this->db = $this->conn->getMongoDBObject();
 	}
 
@@ -659,9 +658,8 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 		$this->getBuilder()->setCollection('test')->batchInsert($data);
 	}
 
-
 	protected function getBuilder()
 	{
-		return new Builder($this->db);
+		return new Builder($this->conn);
 	}
 }

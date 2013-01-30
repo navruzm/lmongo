@@ -39,6 +39,13 @@ class Database
     protected $connection;
 
     /**
+     * The paginator environment instance.
+     *
+     * @var Illuminate\Pagination\Paginator
+     */
+    public $paginator;
+
+    /**
      * Create a new MongoDB connection instance.
      *
      * @param  string  $host
@@ -87,6 +94,31 @@ class Database
     }
 
     /**
+     * Get the paginator environment instance.
+     *
+     * @return Illuminate\Pagination\Environment
+     */
+    public function getPaginator()
+    {
+        if (is_callable($this->paginator))
+        {
+            $this->paginator = call_user_func($this->paginator);
+        }
+        return $this->paginator;
+    }
+
+    /**
+     * Set the pagination environment instance.
+     *
+     * @param  Illuminate\Pagination\Environment|Closure  $paginator
+     * @return void
+     */
+    public function setPaginator($paginator)
+    {
+        $this->paginator = $paginator;
+    }
+
+    /**
      * Dynamically pass collection name to MongoCollection and return it.
      *
      * @param  string  $name
@@ -105,7 +137,7 @@ class Database
      */
     public function collection($collection)
     {
-        $builder = new Query\Builder($this->db);
+        $builder = new Query\Builder($this);
 
         return $builder->setCollection($collection);
     }

@@ -9,7 +9,7 @@ class Builder {
 	/**
 	 * The database connection instance.
 	 *
-	 * @var MongoDB
+	 * @var LMongo\Database
 	 */
 	protected $connection;
 
@@ -65,10 +65,10 @@ class Builder {
 	/**
 	 * Create a new query builder instance.
 	 *
-	 * @param  MongoDB $connection
+	 * @param  \LMongo\Database $connection
 	 * @return void
 	 */
-	public function __construct(\MongoDB $connection)
+	public function __construct(\LMongo\Database $connection)
 	{
 		$this->connection = $connection;
 	}
@@ -1164,6 +1164,18 @@ class Builder {
 	}
 
 	/**
+	 * Set the limit and offset for a given page.
+	 *
+	 * @param  int  $page
+	 * @param  int  $perPage
+	 * @return Illuminate\Database\Query\Builder
+	 */
+	public function forPage($page, $perPage = 15)
+	{
+		return $this->skip(($page - 1) * $perPage)->take($perPage);
+	}
+
+	/**
 	 * Execute the query.
 	 *
 	 * @param  array  $columns
@@ -1240,6 +1252,26 @@ class Builder {
 		$results = $this->connection->{$this->collection}->distinct($column, $query);
 
 		return $results;
+	}
+
+	/**
+	 * Get a paginator.
+	 *
+	 * @param  int    $perPage
+	 * @param  array  $columns
+	 * @return Illuminate\Pagination\Paginator
+	 */
+	public function paginate($perPage = 15, $columns = array())
+	{
+		$paginator = $this->connection->getPaginator();
+
+		$page = $paginator->getCurrentPage();
+
+		$results = $this->forPage($page, $perPage)->get($columns);
+
+		$total = $results->countAll();
+
+		return $paginator->make($results->toArray(), $total, $perPage);
 	}
 
 	/**
@@ -1583,7 +1615,7 @@ class Builder {
 	/**
 	 * Get the database connection instance.
 	 *
-	 * @return MongoDB
+	 * @return \LMongo\Database
 	 */
 	public function getConnection()
 	{
@@ -1593,9 +1625,9 @@ class Builder {
 	/**
 	 * Set the database connection instance.
 	 *
-	 * @return MongoDB
+	 * @return \LMongo\Database
 	 */
-	public function setConnection(\MongoDB $connection)
+	public function setConnection(\LMongo\Database $connection)
 	{
 		$this->connection = $connection;
 	}

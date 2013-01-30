@@ -59,6 +59,14 @@ class LMongoManager {
 
         $connection->connect();
 
+
+        $app = $this->app;
+
+        $connection->setPaginator(function() use ($app)
+        {
+            return $app['paginator'];
+        });
+
         return $connection;
     }
 
