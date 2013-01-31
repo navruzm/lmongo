@@ -14,6 +14,7 @@ LMongo is [MongoDB](http://www.mongodb.org/) Query Builder and service provider 
     * [Inserts](#inserts)
     * [Updates](#updates)
     * [Deletes](#deletes)
+    * [Pagination](#pagination)
 
 Installation
 ============
@@ -338,6 +339,22 @@ LMongo::collection('users')->where('votes', 100)->remove();
 LMongo::collection('users')->delete();
 //or
 Mongo::collection('users')->truncate();
+```
+
+Pagination
+---------
+
+LMongo has pagination support like Laravel's Query Builder.
+
+```php
+$users = LMongo::collection('users')->orderBy('name')->paginate(10);
+
+foreach ($users as $user) 
+{
+    echo $user['name'];
+}
+
+echo $a->links();
 ```
 
 TODO
