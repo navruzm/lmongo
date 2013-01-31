@@ -1,9 +1,9 @@
 LMongo [![Build Status](https://secure.travis-ci.org/navruzm/lmongo.png?branch=master)](https://travis-ci.org/navruzm/lmongo)
 ======
 
-LMongo is [MongoDB](http://www.mongodb.org/) Query Builder and service provider for [Laravel 4](http://laravel.com/).
+LMongo is [MongoDB](http://www.mongodb.org/) Query Builder for [Laravel 4](http://laravel.com/) similar to Laravel's Query Builder.
 
-**Please note that LMongo project is under heavy development, some functionalities are not yet tested**
+**Please note that LMongo project is under heavy development, some functionalities are not yet tested. Please report if you find any bug.**
 
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
@@ -103,7 +103,7 @@ $users = LMongo::collection('users')->get();
 
 foreach ($users as $user)
 {
-	var_dump($user['name']);
+    var_dump($user['name']);
 }
 ```
 
@@ -262,8 +262,8 @@ LMongo::collection('users')
             ->where('name', 'John')
             ->orWhere(function($query)
             {
-            	$query->whereGt('votes', 100)
-            	      ->whereNe('title', 'Admin');
+                $query->whereGt('votes', 100)
+                      ->whereNe('title', 'Admin');
             })
             ->get();
 ```
