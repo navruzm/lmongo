@@ -3,6 +3,7 @@
 use Closure;
 use MongoRegex;
 use MongoCode;
+use MongoID;
 
 class Builder {
 
@@ -1207,6 +1208,20 @@ class Builder {
 		}
 
 		return new Cursor($results);
+	}
+
+	/**
+	 * Execute a query for a single record by _id.
+	 *
+	 * @param  int    $id
+	 * @param  array  $columns
+	 * @return mixed
+	 */
+	public function find($id, $columns = array())
+	{
+		$id = new MongoID((string) $id);
+
+		return $this->where('_id', $id)->first($columns);
 	}
 
 	/**
