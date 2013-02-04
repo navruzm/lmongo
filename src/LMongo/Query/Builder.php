@@ -1618,6 +1618,20 @@ class Builder {
 	}
 
 	/**
+	 * Get a copy of the where clauses and reset.
+	 *
+	 * @return array
+	 */
+	public function getAndResetWheres()
+	{
+		$values = $this->wheres;
+
+		$this->wheres = array();
+
+		return $values;
+	}
+
+	/**
 	 * new Query Builder instance
 	 *
 	 * @return Builder
