@@ -1234,7 +1234,7 @@ class Builder {
 	{
 		$result = (array) $this->first(array($column));
 
-		return count($result) > 0 ? end($result) : null;
+		return count($result) > 0 ? reset($result) : null;
 	}
 
 	/**
@@ -1247,7 +1247,7 @@ class Builder {
 	{
 		$results = $this->take(1)->get($columns)->toArray();
 
-		return current($results);
+		return count($results) > 0 ? reset($results) : null;
 	}
 
 	/**
