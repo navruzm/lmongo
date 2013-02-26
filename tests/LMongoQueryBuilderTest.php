@@ -1,9 +1,9 @@
 <?php
 
-use LMongo\Database;
+use Mockery as m;
+use LMongo\Connection;
 use LMongo\Query\Builder;
 use LMongo\Query\Cursor;
-use \MongoRegex;
 
 class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 
@@ -15,9 +15,9 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 
 	public function setUp()
 	{
-		$this->conn = new Database('localhost', 27017, 'lmongotestdb');
-		$this->conn->connect();
-		$this->db = $this->conn->getMongoDBObject();
+		$this->conn = new Connection;
+		$this->conn->connect(array('host' => 'localhost', 'port' => 27017, 'database' => 'lmongotestdb'));
+		$this->db = $this->conn->getMongoDB();
 	}
 
 	public function tearDown()
@@ -26,6 +26,7 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 		{
 			$this->db->drop();
 		}
+		m::close();
 	}
 
 	public function testBasicWheres()
@@ -506,7 +507,7 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 			'no' => 1,
 		);
 		$builder = $this->getBuilder();
-		$id = $builder->setCollection('test')->insert($data);
+		$id = $builder->collection('test')->insert($data);
 		$this->assertInstanceOf('MongoID', $id);
 
 		$data = array(
@@ -523,7 +524,7 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 				'no' => 4,
 		));
 		$builder = $this->getBuilder();
-		$ids = $builder->setCollection('test')->batchInsert($data);
+		$ids = $builder->collection('test')->batchInsert($data);
 		$this->assertInstanceOf('MongoID', current($ids));
 	}
 
@@ -531,7 +532,7 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 	{
 		$this->insertData();
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('name', 'Mustafa')->first(array('name','no'));
+		$result = $builder->collection('test')->where('name', 'Mustafa')->first(array('name','no'));
 		$this->assertEquals(array('name' => 'Mustafa', 'no' => 1), $result);
 	}
 
@@ -539,7 +540,7 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 	{
 		$this->insertData();
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('name', 'Mustafa')->pluck('no');
+		$result = $builder->collection('test')->where('name', 'Mustafa')->pluck('no');
 		$this->assertEquals(1, $result);
 	}
 
@@ -547,23 +548,23 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 	{
 		$this->insertData();
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->count();
+		$result = $builder->collection('test')->count();
 		$this->assertEquals(4, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->sum('no');
+		$result = $builder->collection('test')->sum('no');
 		$this->assertEquals(10, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->min('no');
+		$result = $builder->collection('test')->min('no');
 		$this->assertEquals(1, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->max('no');
+		$result = $builder->collection('test')->max('no');
 		$this->assertEquals(4, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->avg('no');
+		$result = $builder->collection('test')->avg('no');
 		$this->assertEquals(2.5, $result);
 	}
 
@@ -571,11 +572,11 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 	{
 		$this->insertData();
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('name', 'Mustafa')->update(array('no' => 4));
+		$result = $builder->collection('test')->where('name', 'Mustafa')->update(array('no' => 4));
 		$this->assertEquals(1, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('no', 4)->update(array('no' => 5));
+		$result = $builder->collection('test')->where('no', 4)->update(array('no' => 5));
 		$this->assertEquals(2, $result);
 	}
 
@@ -583,35 +584,35 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 	{
 		$this->insertData();
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('name', 'Mustafa')->increment('no');
+		$result = $builder->collection('test')->where('name', 'Mustafa')->increment('no');
 		$this->assertEquals(1, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('name', 'Mustafa')->pluck('no');
+		$result = $builder->collection('test')->where('name', 'Mustafa')->pluck('no');
 		$this->assertEquals(2, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('name', 'Mustafa')->increment('no', 2);
+		$result = $builder->collection('test')->where('name', 'Mustafa')->increment('no', 2);
 		$this->assertEquals(1, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('name', 'Mustafa')->pluck('no');
+		$result = $builder->collection('test')->where('name', 'Mustafa')->pluck('no');
 		$this->assertEquals(4, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('name', 'Mustafa')->decrement('no');
+		$result = $builder->collection('test')->where('name', 'Mustafa')->decrement('no');
 		$this->assertEquals(1, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('name', 'Mustafa')->pluck('no');
+		$result = $builder->collection('test')->where('name', 'Mustafa')->pluck('no');
 		$this->assertEquals(3, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('name', 'Mustafa')->decrement('no', 2);
+		$result = $builder->collection('test')->where('name', 'Mustafa')->decrement('no', 2);
 		$this->assertEquals(1, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('name', 'Mustafa')->pluck('no');
+		$result = $builder->collection('test')->where('name', 'Mustafa')->pluck('no');
 		$this->assertEquals(1, $result);
 	}
 
@@ -619,11 +620,11 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 	{
 		$this->insertData();
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->where('name', 'Mustafa')->delete();
+		$result = $builder->collection('test')->where('name', 'Mustafa')->delete();
 		$this->assertEquals(1, $result);
 
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->delete();
+		$result = $builder->collection('test')->delete();
 		$this->assertEquals(3, $result);
 	}
 
@@ -631,8 +632,25 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 	{
 		$this->insertData();
 		$builder = $this->getBuilder();
-		$result = $builder->setCollection('test')->truncate();
+		$result = $builder->collection('test')->truncate();
 		$this->assertEquals(true, $result);
+	}
+
+	public function testPaginateCorrectlyCreatesPaginatorInstance()
+	{
+		$connection = m::mock('LMongo\Connection');
+		$builder = $this->getMock('LMongo\Query\Builder', array('getPaginationCount', 'forPage', 'get'), array($connection));
+		$paginator = m::mock('Illuminate\Pagination\Environment');
+		$paginator->shouldReceive('getCurrentPage')->once()->andReturn(1);
+		$connection->shouldReceive('getPaginator')->once()->andReturn($paginator);
+		$cursor = m::mock('LMongo\Query\Cursor');
+		$cursor->shouldReceive('countAll')->once()->andReturn(10);
+		$cursor->shouldReceive('toArray')->once()->andReturn(array('foo'));
+		$builder->expects($this->once())->method('forPage')->with($this->equalTo(1), $this->equalTo(15))->will($this->returnValue($builder));
+		$builder->expects($this->once())->method('get')->with($this->equalTo(array('*')))->will($this->returnValue($cursor));
+		$paginator->shouldReceive('make')->once()->with(array('foo'), 10, 15)->andReturn(array('results'));
+
+		$this->assertEquals(array('results'), $builder->paginate(15, array('*')));
 	}
 
 	protected function insertData()
@@ -655,7 +673,7 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 				'no' => 4,
 		));
 
-		$this->getBuilder()->setCollection('test')->batchInsert($data);
+		$this->getBuilder()->collection('test')->batchInsert($data);
 	}
 
 	protected function getBuilder()

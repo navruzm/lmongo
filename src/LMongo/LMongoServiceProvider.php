@@ -1,15 +1,21 @@
 <?php namespace LMongo;
 
 use Illuminate\Support\ServiceProvider;
+use LMongo\Eloquent\Model as Model;
 
 class LMongoServiceProvider extends ServiceProvider {
 
 	/**
-	 * Indicates if loading of the provider is deferred.
+	 * Bootstrap the application events.
 	 *
-	 * @var bool
+	 * @return void
 	 */
-	protected $defer = true;
+	public function boot()
+	{
+		Model::setConnectionResolver($this->app['lmongo']);
+
+		Model::setEventDispatcher($this->app['events']);
+	}
 
 	/**
 	 * Register the service provider.
@@ -18,20 +24,12 @@ class LMongoServiceProvider extends ServiceProvider {
 	 */
 	public function register()
 	{
-		$this->app['mongo'] = $this->app->share(function($app)
+		// Register the package configuration.
+		$this->app['config']->package('navruzm/lmongo', __DIR__.'/../config');
+
+		$this->app['lmongo'] = $this->app->share(function($app)
 		{
-			return new LMongoManager($app);
+			return new DatabaseManager($app);
 		});
 	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array('mongo');
-	}
-
 }

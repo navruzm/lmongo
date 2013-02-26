@@ -11,7 +11,7 @@ class LMongo extends Facade {
 	 */
 	protected static function getFacadeAccessor()
 	{
-		return 'mongo';
+		return 'lmongo';
 	}
 
 }

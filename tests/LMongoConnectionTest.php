@@ -1,8 +1,8 @@
 <?php
 
-use LMongo\Database;
+use LMongo\Connection;
 
-class LMongoDatabaseTest extends PHPUnit_Framework_TestCase {
+class LMongoConnectionTest extends PHPUnit_Framework_TestCase {
 
 	private $conn;
 
@@ -12,10 +12,10 @@ class LMongoDatabaseTest extends PHPUnit_Framework_TestCase {
 
 	public function setUp()
 	{
-		$this->conn = new Database('localhost', 27017, 'lmongotestdb');
-		$this->conn->connect();
-		$this->connection = $this->conn->getMongoClientObject();
-		$this->db = $this->conn->getMongoDBObject();
+		$this->conn = new Connection;
+		$this->conn->connect(array('host' => 'localhost', 'port' => 27017, 'database' => 'lmongotestdb'));
+		$this->connection = $this->conn->getMongoClient();
+		$this->db = $this->conn->getMongoDB();
 	}
 
 	public function testInstanceOfMongoDB()
@@ -41,6 +41,13 @@ class LMongoDatabaseTest extends PHPUnit_Framework_TestCase {
 	public function testMagicDatabaseObjectMethod()
 	{
 		$this->assertInstanceOf('MongoCollection', $this->conn->testcollection);
+	}
+
+	public function testCollectionCreatesNewQueryBuilder()
+	{
+		$builder = $this->conn->collection('users');
+		$this->assertInstanceOf('LMongo\Query\Builder', $builder);
+		$this->assertEquals('users', $builder->collection);
 	}
 
 	public function tearDown()

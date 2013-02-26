@@ -39,21 +39,17 @@ Once Composer has installed or updated your packages you need to register LMongo
 Then find the `aliases` key and add following line to the array:
 
 ```php
-'LMongo'      => 'LMongo\Facades\LMongo',
+'LMongo'          => 'LMongo\Facades\LMongo',
+'EloquentMongo'   => 'LMongo\Eloquent\Model',
 ```
 
-Finally you need to add the MongoDB database configuration to the `config/database.php` file:
+Finally you need to publish a configuration file by running the following Artisan command.
 
-```php
-'mongodb' => array(
-
-        'default' => array(
-            'host'     => '127.0.0.1',
-            'port'     => 27017,
-            'database' => 'laravel',
-        )
-    ),
+```terminal
+$ php artisan config:publish navruzm/lmongo
 ```
+This will copy the default configuration file to app/config/packages/navruzm/lmongo/config.php
+
 
 Basic Usage
 ===========
@@ -79,14 +75,14 @@ $LMongo->collection_name->remove(array('key', 'value'));
 Get the [MongoDB](http://php.net/manual/en/class.mongodb.php) object:
 
 ```php
-$mongodb = $LMongo->getMongoDBObject();
+$mongodb = $LMongo->getMongoDB();
 
 $collection_names = $mongodb->getCollectionNames();
 ```
 Get the [MongoClient](http://php.net/manual/en/class.mongoclient.php) object:
 
 ```php
-$mongo = $LMongo->getMongoClientObject();
+$mongo = $LMongo->getMongoClient();
 
 $databases = $mongo->listDBs();
 ```
@@ -232,7 +228,7 @@ $users = LMongo::collection('users')
 $users = LMongo::collection('users')
                 ->whereLike('name', 'John','im')->get();
 ```
-There are more where methods in [Query/Builder.php](https://github.com/navruzm/lmongo/blob/master/src/LMongo/Query/Builder.php) file. 
+There are more where methods in [Query/Builder.php](src/LMongo/Query/Builder.php) file.
 
 **Order By**
 
@@ -349,14 +345,16 @@ LMongo has pagination support like Laravel's Query Builder.
 ```php
 $users = LMongo::collection('users')->orderBy('name')->paginate(10);
 
-foreach ($users as $user) 
+foreach ($users as $user)
 {
     echo $user['name'];
 }
 
-echo $a->links();
+echo $user->links();
 ```
 
 TODO
 ====
-* Base Model
+* Aggregate/group support
+* Indexes
+* GridFS

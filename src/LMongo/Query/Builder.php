@@ -10,7 +10,7 @@ class Builder {
 	/**
 	 * The database connection instance.
 	 *
-	 * @var LMongo\Database
+	 * @var LMongo\Connection
 	 */
 	protected $connection;
 
@@ -19,7 +19,7 @@ class Builder {
 	 *
 	 * @var string
 	 */
-	protected $collection;
+	public $collection;
 
 	/**
 	 * The where constraints for the query.
@@ -66,10 +66,10 @@ class Builder {
 	/**
 	 * Create a new query builder instance.
 	 *
-	 * @param  \LMongo\Database $connection
+	 * @param  \LMongo\Connection $connection
 	 * @return void
 	 */
-	public function __construct(\LMongo\Database $connection)
+	public function __construct(\LMongo\Connection $connection)
 	{
 		$this->connection = $connection;
 	}
@@ -1169,7 +1169,7 @@ class Builder {
 	 *
 	 * @param  int  $page
 	 * @param  int  $perPage
-	 * @return Illuminate\Database\Query\Builder
+	 * @return LMongo\Query\Builder
 	 */
 	public function forPage($page, $perPage = 15)
 	{
@@ -1425,7 +1425,7 @@ class Builder {
 
 		if(1 == (int) $result['ok'])
 		{
-			return array_map(function($document) 
+			return array_map(function($document)
 			{
 			    return $document['_id'];
 			}, $data);
@@ -1566,7 +1566,7 @@ class Builder {
 	 * @param  string  $collection
 	 * @return LMongo\Query\Builder
 	 */
-	public function setCollection($collection)
+	public function collection($collection)
 	{
 		$this->collection = $collection;
 
@@ -1644,7 +1644,7 @@ class Builder {
 	/**
 	 * Get the database connection instance.
 	 *
-	 * @return \LMongo\Database
+	 * @return \LMongo\Connection
 	 */
 	public function getConnection()
 	{
@@ -1654,9 +1654,9 @@ class Builder {
 	/**
 	 * Set the database connection instance.
 	 *
-	 * @return \LMongo\Database
+	 * @return \LMongo\Connection
 	 */
-	public function setConnection(\LMongo\Database $connection)
+	public function setConnection(\LMongo\Connection $connection)
 	{
 		$this->connection = $connection;
 	}
