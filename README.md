@@ -1,13 +1,13 @@
 LMongo [![Build Status](https://secure.travis-ci.org/navruzm/lmongo.png?branch=master)](https://travis-ci.org/navruzm/lmongo)
 ======
 
-LMongo is [MongoDB](http://www.mongodb.org/) Query Builder for [Laravel 4](http://laravel.com/) similar to Laravel's Query Builder.
+LMongo is [MongoDB](http://www.mongodb.org/) package for [Laravel 4](http://laravel.com/). Most part of LMongo is based on [Illuminate/Database](https://github.com/illuminate/database) (Thanks to @taylorotwell)
 
 **Please note that LMongo project is under heavy development, some functionalities are not yet tested. Please report if you find any bug.**
 
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
-- [Query Builder Usage](#query-builder-usage)
+- [Query Builder](#query-builder)
     * [Wheres](#wheres)
     * [Advanced Wheres](#advanced-wheres)
     * [Aggregates](#aggregates)
@@ -15,6 +15,7 @@ LMongo is [MongoDB](http://www.mongodb.org/) Query Builder for [Laravel 4](http:
     * [Updates](#updates)
     * [Deletes](#deletes)
     * [Pagination](#pagination)
+- [Eloquent for MongoDB](#eloquent-for-mongodb)
 
 Installation
 ============
@@ -352,6 +353,17 @@ foreach ($users as $user)
 
 echo $user->links();
 ```
+
+Eloquent for MongoDB
+====================
+
+It's similar to Eloquent, except few differences:
+* It has a `collection` property, not `table`
+* Primary key field is `_id`, not `id`
+* No Pivot collections for "Many To Many" relationship. So don't use "Many To Many" relationships on a large datasets.
+
+See [Eloquent Docs](http://four.laravel.com/docs/eloquent).
+
 
 TODO
 ====
