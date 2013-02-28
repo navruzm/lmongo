@@ -98,6 +98,7 @@ class LMongoModelModelTest extends PHPUnit_Framework_TestCase {
 		$model->expects($this->once())->method('updateTimestamps');
 		$model->setEventDispatcher($events = m::mock('Illuminate\Events\Dispatcher'));
 		$events->shouldReceive('until')->once()->with('lmongo.updating: '.get_class($model), $model)->andReturn(true);
+		$events->shouldReceive('fire')->once()->with('lmongo.updated: '.get_class($model), $model)->andReturn(true);
 
 		$model->id = 1;
 		$model->name = 'taylor';
@@ -106,7 +107,7 @@ class LMongoModelModelTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testUpdateIsCancelledIfCreatingEventReturnsFalse()
+	public function testUpdateIsCancelledIfUpdatingEventReturnsFalse()
 	{
 		$model = $this->getMock('LMongoModelStub', array('newQuery'));
 		$query = m::mock('LMongo\Eloquent\Builder');
@@ -187,6 +188,7 @@ class LMongoModelModelTest extends PHPUnit_Framework_TestCase {
 
 		$model->setEventDispatcher($events = m::mock('Illuminate\Events\Dispatcher'));
 		$events->shouldReceive('until')->once()->with('lmongo.creating: '.get_class($model), $model)->andReturn(true);
+		$events->shouldReceive('fire')->once()->with('lmongo.created: '.get_class($model), $model);
 
 		$model->name = 'taylor';
 		$model->exists = false;
@@ -421,6 +423,10 @@ class LMongoModelModelTest extends PHPUnit_Framework_TestCase {
 	{
 		$model = new LMongoModelWithoutCollectionStub;
 		$this->assertEquals('l_mongo_model_without_collection_stubs', $model->getCollection());
+
+		require_once __DIR__.'/stubs/EloquentModelNamespacedStub.php';
+		$namespacedModel = new Foo\Bar\EloquentModelNamespacedStub;
+		$this->assertEquals('foo_bar_eloquent_model_namespaced_stubs', $namespacedModel->getCollection());
 	}
 
 

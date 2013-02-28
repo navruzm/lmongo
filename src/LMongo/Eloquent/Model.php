@@ -138,6 +138,13 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	protected static $dispatcher;
 
 	/**
+	 * The array of booted models.
+	 *
+	 * @var array
+	 */
+	protected static $booted = array();
+
+	/**
 	 * Create a new model instance.
 	 *
 	 * @param  array  $attributes
@@ -145,8 +152,22 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	 */
 	public function __construct(array $attributes = array())
 	{
+		if ( ! isset(static::$booted[get_class($this)]))
+		{
+			static::boot();
+
+			static::$booted[get_class($this)] = true;
+		}
+
 		$this->fill($attributes);
 	}
+
+	/**
+	 * The "booting" method of the model.
+	 *
+	 * @return void
+	 */
+	protected static function boot() {}
 
 	/**
 	 * Fill the model with an array of attributes.
@@ -452,6 +473,17 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	}
 
 	/**
+	 * Register an updated model event with the dispatcher.
+	 *
+	 * @param  Closure  $callback
+	 * @return void
+	 */
+	public static function updated(Closure $callback)
+	{
+		static::registerModelEvent('updated', $callback);
+	}
+
+	/**
 	 * Register a creating model event with the dispatcher.
 	 *
 	 * @param  Closure  $callback
@@ -460,6 +492,17 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	public static function creating(Closure $callback)
 	{
 		static::registerModelEvent('creating', $callback);
+	}
+
+	/**
+	 * Register a created model event with the dispatcher.
+	 *
+	 * @param  Closure  $callback
+	 * @return void
+	 */
+	public static function created(Closure $callback)
+	{
+		static::registerModelEvent('created', $callback);
 	}
 
 	/**
@@ -535,6 +578,8 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 		if( ! is_null($this->getKey()))
 		{
 			$query->save($this->attributes);
+
+			$this->fireModelEvent('updated', false);
 		}
 
 		return true;
@@ -550,11 +595,11 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	{
 		if ($this->fireModelEvent('creating') === false) return false;
 
+		$attributes = $this->attributes;
+
 		// If the model has an incrementing key, we can use the "insertGetId" method on
 		// the query builder, which will give us back the final inserted ID for this
 		// table from the database. Not all tables have to be incrementing though.
-		$attributes = $this->attributes;
-
 		if ($this->incrementing)
 		{
 			$keyName = $this->getKeyName();
@@ -570,6 +615,8 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 			$query->save($attributes);
 		}
 
+		$this->fireModelEvent('created', false);
+
 		return true;
 	}
 
@@ -578,13 +625,18 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	 *
 	 * @return mixed
 	 */
-	protected function fireModelEvent($event)
+	protected function fireModelEvent($event, $halt = true)
 	{
 		if ( ! isset(static::$dispatcher)) return true;
 
-		$name = get_class($this);
+		// We will append the names of the class to the event to distinguish it from
+		// other model events that are fired, allowing us to listen on each model
+		// event set individually instead of catching event for all the models.
+		$event = "lmongo.{$event}: ".get_class($this);
 
-		return static::$dispatcher->until("lmongo.{$event}: {$name}", $this);
+		$method = $halt ? 'until' : 'fire';
+
+		return static::$dispatcher->$method($event, $this);
 	}
 
 	/**
