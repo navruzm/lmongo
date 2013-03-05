@@ -80,6 +80,8 @@ class Connection {
 			$dsn .= ":{$port}";
 		}
 
+		$dsn.= "/{$database}";
+
 		return $dsn;
 	}
 
