@@ -95,6 +95,22 @@ class BelongsToMany extends HasOneOrMany {
 	}
 
 	/**
+	 * Save an array of new models and attach them to the parent model.
+	 *
+	 * @param  array  $models
+	 * @return array
+	 */
+	public function saveMany(array $models)
+	{
+		foreach ($models as $key => $model)
+		{
+			$this->save($model);
+		}
+
+		return $models;
+	}
+
+	/**
 	 * Create a new instance of the related model.
 	 *
 	 * @param  array  $attributes
@@ -111,6 +127,24 @@ class BelongsToMany extends HasOneOrMany {
 		$instance->save();
 
 		$this->attach($instance);
+
+		return $instance;
+	}
+
+	/**
+	 * Create an array of new instances of the related models.
+	 *
+	 * @param  array  $attributes
+	 * @return Illuminate\Database\Eloquent\Model
+	 */
+	public function createMany(array $records)
+	{
+		$instances = array();
+
+		foreach ($records as $key => $record)
+		{
+			$instances[] = $this->create($record);
+		}
 
 		return $instance;
 	}

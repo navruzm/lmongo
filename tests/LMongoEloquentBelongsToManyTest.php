@@ -4,7 +4,7 @@ use Mockery as m;
 use LMongo\Eloquent\Collection;
 use LMongo\Eloquent\Relations\BelongsToMany;
 
-class LMongoModelBelongsToManyTest extends PHPUnit_Framework_TestCase {
+class LMongoEloquentBelongsToManyTest extends PHPUnit_Framework_TestCase {
 
 	public function tearDown()
 	{
@@ -169,6 +169,8 @@ class LMongoModelBelongsToManyTest extends PHPUnit_Framework_TestCase {
 		$builder->shouldReceive('getModel')->andReturn($related);
 		$parent = m::mock('LMongo\Eloquent\Model');
 		$parent->shouldReceive('getKey')->andReturn('511241ccaa69274018000000');
+		$parent->shouldReceive('getCreatedAtColumn')->andReturn('created_at');
+		$parent->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
 
 		return array($builder, $parent, 'foreign_key', 'other_key');
 	}

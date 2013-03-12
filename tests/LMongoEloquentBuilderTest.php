@@ -3,7 +3,7 @@
 use Mockery as m;
 use LMongo\Eloquent\Builder;
 
-class LMongoModelBuilderTest extends PHPUnit_Framework_TestCase {
+class LMongoEloquentBuilderTest extends PHPUnit_Framework_TestCase {
 
 	public function tearDown()
 	{

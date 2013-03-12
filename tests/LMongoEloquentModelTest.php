@@ -2,7 +2,7 @@
 
 use Mockery as m;
 
-class LMongoModelModelTest extends PHPUnit_Framework_TestCase {
+class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 
 	public function tearDown()
 	{
@@ -93,14 +93,18 @@ class LMongoModelModelTest extends PHPUnit_Framework_TestCase {
 	{
 		$model = $this->getMock('LMongoModelStub', array('newQuery', 'updateTimestamps'));
 		$query = m::mock('LMongo\Eloquent\Builder');
-		$query->shouldReceive('save')->once()->with(array('id' => 1, 'name' => 'taylor'));
+		$query->shouldReceive('where')->once()->with('_id', 'MongoID');
+		$query->shouldReceive('update')->once()->with(array('_id' => 1, 'name' => 'taylor'));
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
 		$model->expects($this->once())->method('updateTimestamps');
 		$model->setEventDispatcher($events = m::mock('Illuminate\Events\Dispatcher'));
 		$events->shouldReceive('until')->once()->with('lmongo.updating: '.get_class($model), $model)->andReturn(true);
 		$events->shouldReceive('fire')->once()->with('lmongo.updated: '.get_class($model), $model)->andReturn(true);
 
-		$model->id = 1;
+		$model->foo = 'bar';
+		// make sure foo isn't synced so we can test that dirty attributes only are updated
+		$model->syncOriginal();
+		$model->_id = 1;
 		$model->name = 'taylor';
 		$model->exists = true;
 		$this->assertTrue($model->save());
@@ -125,11 +129,12 @@ class LMongoModelModelTest extends PHPUnit_Framework_TestCase {
 		$model = $this->getMock('LMongoModelStub', array('newQuery', 'updateTimestamps'));
 		$model->timestamps = false;
 		$query = m::mock('LMongo\Eloquent\Builder');
-		$query->shouldReceive('save')->once()->with(array('id' => 1, 'name' => 'taylor'));
+		$query->shouldReceive('where')->once()->with('_id', 'MongoID');
+		$query->shouldReceive('update')->once()->with(array('_id' => 1, 'name' => 'taylor'));
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
 		$model->expects($this->never())->method('updateTimestamps');
 
-		$model->id = 1;
+		$model->_id = 1;
 		$model->name = 'taylor';
 		$model->exists = true;
 		$this->assertTrue($model->save());
@@ -143,6 +148,7 @@ class LMongoModelModelTest extends PHPUnit_Framework_TestCase {
 			'created_at'	=> new MongoDate,
 			'updated_at'	=> new MongoDate,
 		));
+
 		$this->assertInstanceOf('DateTime', $model->created_at);
 		$this->assertInstanceOf('DateTime', $model->updated_at);
 	}
@@ -177,6 +183,7 @@ class LMongoModelModelTest extends PHPUnit_Framework_TestCase {
 		$instance->created_at = null;
 		$this->assertNull($instance->created_at);
 	}
+
 
 	public function testInsertProcess()
 	{
@@ -283,6 +290,50 @@ class LMongoModelModelTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('boom', $array['names'][1]['bam']);
 		$this->assertEquals('abby', $array['partner']['name']);
 		$this->assertFalse(isset($array['password']));
+	}
+
+
+	public function testHiddenCanAlsoExcludeRelationships()
+	{
+		$model = new LMongoModelStub;
+		$model->name = 'Taylor';
+		$model->setRelation('foo', array('bar'));
+		$model->setHidden(array('foo'));
+		$array = $model->toArray();
+
+		$this->assertEquals(array('name' => 'Taylor'), $array);
+	}
+
+
+	public function testToArraySnakeAttributes()
+	{
+		$model = new LMongoModelStub;
+		$model->setRelation('namesList', new LMongo\Eloquent\Collection(array(
+			new LMongoModelStub(array('bar' => 'baz')), new LMongoModelStub(array('bam' => 'boom'))
+		)));
+		$array = $model->toArray();
+
+		$this->assertEquals('baz', $array['names_list'][0]['bar']);
+		$this->assertEquals('boom', $array['names_list'][1]['bam']);
+
+		$model = new LMongoModelCamelStub;
+		$model->setRelation('namesList', new LMongo\Eloquent\Collection(array(
+			new LMongoModelStub(array('bar' => 'baz')), new LMongoModelStub(array('bam' => 'boom'))
+		)));
+		$array = $model->toArray();
+
+		$this->assertEquals('baz', $array['namesList'][0]['bar']);
+		$this->assertEquals('boom', $array['namesList'][1]['bam']);
+	}
+
+
+	public function testToArrayUsesMutators()
+	{
+		$model = new LMongoModelStub;
+		$model->list_items = array(1, 2, 3);
+		$array = $model->toArray();
+
+		$this->assertEquals(array(1, 2, 3), $array['list_items']);
 	}
 
 
@@ -430,6 +481,14 @@ class LMongoModelModelTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testTheMutatorCacheIsPopulated()
+	{
+		$class = new LMongoModelStub;
+
+		$this->assertEquals(array('list_items', 'password'), $class->getMutatedAttributes());
+	}
+
+
 	protected function addMockConnection($model)
 	{
 		$resolver = m::mock('LMongo\DatabaseManager');
@@ -471,6 +530,11 @@ class LMongoModelStub extends LMongo\Eloquent\Model {
 		return $this->belongsTo('LMongoModelSaveStub', 'foo');
 	}
 }
+
+class LMongoModelCamelStub extends LMongoModelStub {
+	public static $snakeAttributes = false;
+}
+
 
 class LMongoDateModelStub extends LMongoModelStub {
 	protected $dates = array('created_at', 'updated_at');

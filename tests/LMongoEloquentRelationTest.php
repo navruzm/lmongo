@@ -3,7 +3,7 @@
 use Mockery as m;
 use LMongo\Eloquent\Relations\HasOne;
 
-class LMongoModelRelationTest extends PHPUnit_Framework_TestCase {
+class LMongoEloquentRelationTest extends PHPUnit_Framework_TestCase {
 
 	public function tearDown()
 	{

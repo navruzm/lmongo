@@ -4,7 +4,7 @@ use Mockery as m;
 use LMongo\Eloquent\Collection;
 use LMongo\Eloquent\Relations\BelongsTo;
 
-class LMongoModelBelongsToTest extends PHPUnit_Framework_TestCase {
+class LMongoEloquentBelongsToTest extends PHPUnit_Framework_TestCase {
 
 	public function tearDown()
 	{

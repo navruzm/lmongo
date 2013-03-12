@@ -4,7 +4,7 @@ use Mockery as m;
 use LMongo\Eloquent\Relations\MorphOne;
 use LMongo\Eloquent\Relations\MorphMany;
 
-class LMongoModelMorphTest extends PHPUnit_Framework_TestCase {
+class LMongoEloquentMorphTest extends PHPUnit_Framework_TestCase {
 
 	public function tearDown()
 	{
@@ -37,7 +37,7 @@ class LMongoModelMorphTest extends PHPUnit_Framework_TestCase {
 		$builder = new LMongoMorphResetBuilderStub;
 		$parent = m::mock('LMongo\Eloquent\Model');
 		$parent->shouldReceive('getKey')->andReturn(1);
-		$relation = new MorphOne($builder, $parent, 'morph');
+		$relation = new MorphOne($builder, $parent, 'morph_type', 'morph_id');
 		$relation->where('foo', 'bar');
 		$wheres = $relation->getAndResetWheres();
 
@@ -76,7 +76,7 @@ class LMongoModelMorphTest extends PHPUnit_Framework_TestCase {
 		$builder = new LMongoMorphResetBuilderStub;
 		$parent = m::mock('LMongo\Eloquent\Model');
 		$parent->shouldReceive('getKey')->andReturn(1);
-		$relation = new MorphMany($builder, $parent, 'morph');
+		$relation = new MorphMany($builder, $parent, 'morph_type', 'morph_id');
 		$relation->where('foo', 'bar');
 		$wheres = $relation->getAndResetWheres();
 
@@ -107,7 +107,7 @@ class LMongoModelMorphTest extends PHPUnit_Framework_TestCase {
 		$parent = m::mock('LMongo\Eloquent\Model');
 		$parent->shouldReceive('getKey')->andReturn('511241ccaa69274018000000');
 		$builder->shouldReceive('where')->once()->with('morph_type', get_class($parent));
-		return new MorphOne($builder, $parent, 'morph');
+		return new MorphOne($builder, $parent, 'morph_type', 'morph_id');
 	}
 
 
@@ -120,7 +120,7 @@ class LMongoModelMorphTest extends PHPUnit_Framework_TestCase {
 		$parent = m::mock('LMongo\Eloquent\Model');
 		$parent->shouldReceive('getKey')->andReturn(1);
 		$builder->shouldReceive('where')->once()->with('morph_type', get_class($parent));
-		return new MorphMany($builder, $parent, 'morph');
+		return new MorphMany($builder, $parent, 'morph_type', 'morph_id');
 	}
 
 }

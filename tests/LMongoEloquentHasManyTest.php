@@ -4,7 +4,7 @@ use Mockery as m;
 use LMongo\Eloquent\Collection;
 use LMongo\Eloquent\Relations\HasMany;
 
-class LMongoModelHasManyTest extends PHPUnit_Framework_TestCase {
+class LMongoEloquentHasManyTest extends PHPUnit_Framework_TestCase {
 
 	public function tearDown()
 	{
@@ -95,6 +95,8 @@ class LMongoModelHasManyTest extends PHPUnit_Framework_TestCase {
 		$builder->shouldReceive('getModel')->andReturn($related);
 		$parent = m::mock('LMongo\Eloquent\Model');
 		$parent->shouldReceive('getKey')->andReturn('511241ccaa69274018000000');
+		$parent->shouldReceive('getCreatedAtColumn')->andReturn('created_at');
+		$parent->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
 		return new HasMany($builder, $parent, 'foreign_key');
 	}
 

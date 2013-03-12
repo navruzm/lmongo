@@ -3,7 +3,7 @@
 use Mockery as m;
 use LMongo\Eloquent\Collection;
 
-class LMongoModelCollectionTest extends PHPUnit_Framework_TestCase {
+class LMongoEloquentCollectionTest extends PHPUnit_Framework_TestCase {
 
 	public function tearDown()
 	{
@@ -31,6 +31,16 @@ class LMongoModelCollectionTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($c->contains(1));
 		$this->assertTrue($c->contains(2));
 		$this->assertFalse($c->contains(3));
+	}
+
+
+	public function testFindMethodFindsModelById()
+	{
+		$mockModel = m::mock('LMongo\Eloquent\Model');
+		$mockModel->shouldReceive('getKey')->andReturn(1);
+		$c = new Collection(array($mockModel));
+
+		$this->assertTrue($mockModel === $c->find(1));
 	}
 
 
