@@ -484,12 +484,11 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	 * Define a many-to-many relationship.
 	 *
 	 * @param  string  $related
-	 * @param  string  $collection
 	 * @param  string  $foreignKey
 	 * @param  string  $otherKey
 	 * @return LMongo\Eloquent\Relations\BelongsToMany
 	 */
-	public function belongsToMany($related, $collection = null, $foreignKey = null, $otherKey = null)
+	public function belongsToMany($related, $foreignKey = null, $otherKey = null)
 	{
 		// First, we'll need to determine the foreign key and "other key" for the
 		// relationship. Once we have determined the keys we'll make the query
