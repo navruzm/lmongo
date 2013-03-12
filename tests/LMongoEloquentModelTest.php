@@ -462,7 +462,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 
 		$model = new LMongoModelStub;
 		$this->addMockConnection($model);
-		$relation = $model->belongsToMany('LMongoModelSaveStub', 'collection', 'foreign', 'other');
+		$relation = $model->belongsToMany('LMongoModelSaveStub', 'foreign', 'other');
 		$this->assertEquals('foreign', $relation->getForeignKey());
 		$this->assertEquals('other', $relation->getOtherKey());
 		$this->assertTrue($relation->getParent() === $model);
