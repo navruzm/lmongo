@@ -631,26 +631,31 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	 */
 	protected function performUpdate($query)
 	{
-		// If the updating event returns false, we will cancel the update operation so
-		// developers can hook Validation systems into their models and cancel this
-		// operation if the model does not pass validation. Otherwise, we update.
-		if ($this->fireModelEvent('updating') === false)
+		$dirty = $this->getDirty();
+
+		if (count($dirty) > 0)
 		{
-			return false;
-		}
+			// If the updating event returns false, we will cancel the update operation so
+			// developers can hook Validation systems into their models and cancel this
+			// operation if the model does not pass validation. Otherwise, we update.
+			if ($this->fireModelEvent('updating') === false)
+			{
+				return false;
+			}
 
-		// Perform update if the key is present.
-		// Othervise mongo saves this model as a new document.
-		if( ! is_null($this->getKey()))
-		{
-			$dirty = $this->getDirty();
+			// Perform update if the key is present.
+			// Othervise mongo saves this model as a new document.
+			if( ! is_null($this->getKey()))
+			{
+				$dirty = $this->getDirty();
 
-			$this->setKeysForSaveQuery($query)->update($dirty);
+				// Once we have run the update operation, we will fire the "updated" event for
+				// this model instance. This will allow developers to hook into these after
+				// models are updated, giving them a chance to do any special processing.
+				$this->setKeysForSaveQuery($query)->update($dirty);
 
-			// Once we have run the update operation, we will fire the "updated" event for
-			// this model instance. This will allow developers to hook into these after
-			// models are updated, giving them a chance to do any special processing.
-			$this->fireModelEvent('updated', false);
+				$this->fireModelEvent('updated', false);
+			}
 		}
 
 		return true;
