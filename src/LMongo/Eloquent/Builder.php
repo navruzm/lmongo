@@ -154,9 +154,7 @@ class Builder {
 		// also set the proper connection name for the model after we create it.
 		foreach ($results as $result)
 		{
-			$models[] = $model = $this->model->newExisting();
-
-			$model->setRawAttributes((array) $result, true);
+			$models[] = $model = $this->model->newFromBuilder($result);
 
 			$model->setConnection($connection);
 		}

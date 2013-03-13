@@ -263,9 +263,13 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	 * @param  array  $attributes
 	 * @return LMongo\Eloquent\Model
 	 */
-	public function newExisting($attributes = array())
+	public function newFromBuilder($attributes = array())
 	{
-		return $this->newInstance($attributes, true);
+		$instance = $this->newInstance(array(), true);
+
+	   	$instance->setRawAttributes((array) $attributes, true);
+
+    	return $instance;
 	}
 
 	/**
