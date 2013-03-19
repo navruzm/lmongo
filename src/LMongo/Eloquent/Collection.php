@@ -15,16 +15,17 @@ class Collection extends BaseCollection {
 	 * Find a model in the collection by key.
 	 *
 	 * @param  mixed  $key
-	 * @return Illuminate\Database\Eloquent\Model
+	 * @param  mixed  $default
+	 * @return LMongo\Eloquent\Model
 	 */
-	public function find($key)
+	public function find($key, $default = null)
 	{
 		if (count($this->dictionary) == 0)
 		{
 			$this->buildDictionary();
 		}
 
-		return $this->dictionary[$key];
+		return array_get($this->dictionary, $key, $default);
 	}
 
 	/**
