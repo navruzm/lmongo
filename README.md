@@ -16,6 +16,7 @@ LMongo is [MongoDB](http://www.mongodb.org/) package for [Laravel 4](http://lara
     * [Deletes](#deletes)
     * [Pagination](#pagination)
 - [Eloquent for MongoDB](#eloquent-for-mongodb)
+- [License](#license)
 
 Installation
 ============
@@ -335,7 +336,7 @@ LMongo::collection('users')->where('votes', 100)->remove();
 ```php
 LMongo::collection('users')->delete();
 //or
-Mongo::collection('users')->truncate();
+LMongo::collection('users')->truncate();
 ```
 
 Pagination
@@ -363,6 +364,11 @@ It's similar to Eloquent, except few differences:
 * No Pivot collections for "Many To Many" relationship. So don't use "Many To Many" relationships on a large datasets.
 
 See [Eloquent Docs](http://four.laravel.com/docs/eloquent).
+
+License
+=======
+
+Licensed under the [MIT License](http://cheeaun.mit-license.org/).
 
 
 TODO
