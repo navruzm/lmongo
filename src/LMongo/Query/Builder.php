@@ -941,6 +941,82 @@ class Builder {
 	}
 
 	/**
+	 * Add an "$nearSphere geospatial operation" clause to logical operation.
+	 *
+	 * @param  string  $column
+	 * @param  array   $coords
+	 * @param  mixed   $geometry
+	 * @param  mixed   $maxDistance
+	 * @param  string  $boolean
+	 * @return LMongo\Query\Builder
+	 */
+	public function whereNearSphere($column, array $coords, $geometry = null, $maxDistance = null, $boolean = 'first')
+	{
+		if(is_null($geometry))
+		{
+			$value = array('$nearSphere' => $coords);
+
+			if( ! is_null($maxDistance))
+			{
+				$value['$maxDistance'] = $maxDistance;
+			}
+		}
+		else
+		{
+			$value = array('$nearSphere' => array('$geometry' => array('type' => $geometry, 'coordinates' => $coords)));
+
+			if( ! is_null($maxDistance))
+			{
+				$value['$nearSphere']['$geometry']['$maxDistance'] = $maxDistance;
+			}
+		}
+
+		return $this->where($column, $value, $boolean);
+	}
+
+	/**
+	 * Add an "$nearSphere geospatial operation" clause to logical $and operation.
+	 *
+	 * @param  string  $column
+	 * @param  array   $coords
+	 * @param  mixed   $geometry
+	 * @param  mixed   $maxDistance
+	 * @return LMongo\Query\Builder
+	 */
+	public function andWhereNearSphere($column, array $coords, $geometry = null, $maxDistance = null)
+	{
+		return $this->whereNearSphere($column, $coords, $geometry, $maxDistance, '$and');
+	}
+
+	/**
+	 * Add an "$nearSphere geospatial operation" clause to logical $or operation.
+	 *
+	 * @param  string  $column
+	 * @param  array   $coords
+	 * @param  mixed   $geometry
+	 * @param  mixed   $maxDistance
+	 * @return LMongo\Query\Builder
+	 */
+	public function orWhereNearSphere($column, array $coords, $geometry = null, $maxDistance = null)
+	{
+		return $this->whereNearSphere($column, $coords, $geometry, $maxDistance, '$or');
+	}
+
+	/**
+	 * Add an "$nearSphere geospatial operation" clause to logical $nor operation.
+	 *
+	 * @param  string  $column
+	 * @param  array   $coords
+	 * @param  mixed   $geometry
+	 * @param  mixed   $maxDistance
+	 * @return LMongo\Query\Builder
+	 */
+	public function norWhereNearSphere($column, array $coords, $geometry = null, $maxDistance = null)
+	{
+		return $this->whereNearSphere($column, $coords, $geometry, $maxDistance, '$nor');
+	}
+
+	/**
 	 * Add an "$within geospatial operation" clause to logical operation.
 	 *
 	 * @param  string  $column
