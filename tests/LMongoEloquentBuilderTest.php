@@ -222,6 +222,18 @@ class LMongoEloquentBuilderTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testQueryScopes()
+	{
+		$builder = $this->getBuilder();
+		$builder->getQuery()->shouldReceive('collection');
+		$builder->getQuery()->shouldReceive('where')->once()->with('foo', 'bar');
+		$builder->setModel($model = new LMongoBuilderTestScopeStub);
+		$result = $builder->approved();
+
+		$this->assertEquals($builder, $result);
+	}
+
+
 	protected function getBuilder()
 	{
 		return new Builder(m::mock('LMongo\Query\Builder'));
@@ -236,3 +248,9 @@ class LMongoEloquentBuilderTest extends PHPUnit_Framework_TestCase {
 }
 
 class LMongoBuilderTestModelStub extends LMongo\Eloquent\Model {}
+class LMongoBuilderTestScopeStub extends LMongo\Eloquent\Model {
+	public function scopeApproved($query)
+	{
+		$query->where('foo', 'bar');
+	}
+}
