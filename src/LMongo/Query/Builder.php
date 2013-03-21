@@ -868,52 +868,76 @@ class Builder {
 	 * Add an "$near geospatial operation" clause to logical operation.
 	 *
 	 * @param  string  $column
-	 * @param  float   $lon
-	 * @param  float   $lat
+	 * @param  array   $coords
+	 * @param  mixed   $geometry
+	 * @param  mixed   $maxDistance
+	 * @param  string  $boolean
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereNear($column, $lon, $lat)
+	public function whereNear($column, array $coords, $geometry = null, $maxDistance = null, $boolean = 'first')
 	{
-		return $this->where($column, array('$near' => array($lon, $lat)), 'first');
+		if(is_null($geometry))
+		{
+			$value = array('$near' => $coords);
+
+			if( ! is_null($maxDistance))
+			{
+				$value['$maxDistance'] = $maxDistance;
+			}
+		}
+		else
+		{
+			$value = array('$near' => array('$geometry' => array('type' => $geometry, 'coordinates' => $coords)));
+
+			if( ! is_null($maxDistance))
+			{
+				$value['$near']['$geometry']['$maxDistance'] = $maxDistance;
+			}
+		}
+
+		return $this->where($column, $value, $boolean);
 	}
 
 	/**
 	 * Add an "$near geospatial operation" clause to logical $and operation.
 	 *
 	 * @param  string  $column
-	 * @param  float   $lon
-	 * @param  float   $lat
+	 * @param  array   $coords
+	 * @param  mixed   $geometry
+	 * @param  mixed   $maxDistance
 	 * @return LMongo\Query\Builder
 	 */
-	public function andWhereNear($column, $lon, $lat)
+	public function andWhereNear($column, array $coords, $geometry = null, $maxDistance = null)
 	{
-		return $this->where($column, array('$near' => array($lon, $lat)), '$and');
+		return $this->whereNear($column, $coords, $geometry, $maxDistance, '$and');
 	}
 
 	/**
 	 * Add an "$near geospatial operation" clause to logical $or operation.
 	 *
 	 * @param  string  $column
-	 * @param  float   $lon
-	 * @param  float   $lat
+	 * @param  array   $coords
+	 * @param  mixed   $geometry
+	 * @param  mixed   $maxDistance
 	 * @return LMongo\Query\Builder
 	 */
-	public function orWhereNear($column, $lon, $lat)
+	public function orWhereNear($column, array $coords, $geometry = null, $maxDistance = null)
 	{
-		return $this->where($column, array('$near' => array($lon, $lat)), '$or');
+		return $this->whereNear($column, $coords, $geometry, $maxDistance, '$or');
 	}
 
 	/**
 	 * Add an "$near geospatial operation" clause to logical $nor operation.
 	 *
 	 * @param  string  $column
-	 * @param  float   $lon
-	 * @param  float   $lat
+	 * @param  array   $coords
+	 * @param  mixed   $geometry
+	 * @param  mixed   $maxDistance
 	 * @return LMongo\Query\Builder
 	 */
-	public function norWhereNear($column, $lon, $lat)
+	public function norWhereNear($column, array $coords, $geometry = null, $maxDistance = null)
 	{
-		return $this->where($column, array('$near' => array($lon, $lat)), '$nor');
+		return $this->whereNear($column, $coords, $geometry, $maxDistance, '$nor');
 	}
 
 	/**

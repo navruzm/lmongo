@@ -374,20 +374,36 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 	public function testWhereNears()
 	{
 		$builder = $this->getBuilder();
-		$builder->whereNear('location', 5, 3);
+		$builder->whereNear('location', array(5, 3));
 		$this->assertEquals(array('$and' => array(array('location' => array('$near' => array(5, 3))))), $builder->compileWheres($builder));
 
 		$builder = $this->getBuilder();
-		$builder->where('name', 'John')->andWhereNear('location', 5, 3);
+		$builder->whereNear('location', array(5, 3), null, 10);
+		$this->assertEquals(array('$and' => array(array('location' => array('$near' => array(5, 3), '$maxDistance' => 10)))), $builder->compileWheres($builder));
+
+		$builder = $this->getBuilder();
+		$builder->whereNear('location', array(5, 3), 'Polygon');
+		$this->assertEquals(array('$and' => array(array('location' => array('$near' => array('$geometry' => array('type' => 'Polygon', 'coordinates' => array(5, 3))))))), $builder->compileWheres($builder));
+
+		$builder = $this->getBuilder();
+		$builder->whereNear('location', array(5, 3), 'Polygon', 10);
+		$this->assertEquals(array('$and' => array(array('location' => array('$near' => array('$geometry' => array('type' => 'Polygon', 'coordinates' => array(5, 3), '$maxDistance' => 10)))))), $builder->compileWheres($builder));
+
+		$builder = $this->getBuilder();
+		$builder->where('name', 'John')->andWhereNear('location', array(5, 3));
 		$this->assertEquals(array('$and' => array(array('name' => 'John'), array('location' => array('$near' => array(5, 3))))), $builder->compileWheres($builder));
 
 		$builder = $this->getBuilder();
-		$builder->where('name', 'John')->orWhereNear('location', 5, 3);
+		$builder->where('name', 'John')->orWhereNear('location', array(5, 3));
 		$this->assertEquals(array('$or' => array(array('name' => 'John'), array('location' => array('$near' => array(5, 3))))), $builder->compileWheres($builder));
 
 		$builder = $this->getBuilder();
-		$builder->where('name', 'John')->norWhereNear('location', 5, 3);
+		$builder->where('name', 'John')->norWhereNear('location', array(5, 3));
 		$this->assertEquals(array('$nor' => array(array('name' => 'John'), array('location' => array('$near' => array(5, 3))))), $builder->compileWheres($builder));
+
+		$builder = $this->getBuilder();
+		$builder->where('name', 'John')->andwhereNear('location', array(5, 3), 'Polygon', 10);
+		$this->assertEquals(array('$and' => array(array('name' => 'John'),array('location' => array('$near' => array('$geometry' => array('type' => 'Polygon', 'coordinates' => array(5, 3), '$maxDistance' => 10)))))), $builder->compileWheres($builder));
 	}
 
 	public function testWhereWithins()
