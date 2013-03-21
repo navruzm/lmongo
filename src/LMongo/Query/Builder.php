@@ -1079,6 +1079,61 @@ class Builder {
 	}
 
 	/**
+	 * Add an "$geoIntersects geospatial operation" clause to logical operation.
+	 *
+	 * @param  string  $column
+	 * @param  string  $geometry
+	 * @param  array   $coords
+	 * @param  string  $boolean
+	 * @return LMongo\Query\Builder
+	 */
+	public function whereGeoIntersects($column, $geometry, array $coords, $boolean = 'first')
+	{
+		$value = array('$geoIntersects' => array('$geometry' => array('type' => $geometry, 'coordinates' => $coords)));
+
+		return $this->where($column, $value, $boolean);
+	}
+
+	/**
+	 * Add an "$geoIntersects geospatial operation" clause to logical $and operation.
+	 *
+	 * @param  string  $column
+	 * @param  string  $geometry
+	 * @param  array   $coords
+	 * @return LMongo\Query\Builder
+	 */
+	public function andWhereGeoIntersects($column, $geometry, array $coords)
+	{
+		return $this->whereGeoIntersects($column, $geometry, $coords, '$and');
+	}
+
+	/**
+	 * Add an "$geoIntersects geospatial operation" clause to logical $or operation.
+	 *
+	 * @param  string  $column
+	 * @param  string  $geometry
+	 * @param  array   $coords
+	 * @return LMongo\Query\Builder
+	 */
+	public function orWhereGeoIntersects($column, $geometry, array $coords)
+	{
+		return $this->whereGeoIntersects($column, $geometry, $coords, '$or');
+	}
+
+	/**
+	 * Add an "$geoIntersects geospatial operation" clause to logical $nor operation.
+	 *
+	 * @param  string  $column
+	 * @param  string  $geometry
+	 * @param  array   $coords
+	 * @return LMongo\Query\Builder
+	 */
+	public function norWhereGeoIntersects($column, $geometry, array $coords)
+	{
+		return $this->whereGeoIntersects($column, $geometry, $coords, '$nor');
+	}
+
+	/**
 	 * Add an "$size array operation" clause to logical operation.
 	 *
 	 * @param  string  $column

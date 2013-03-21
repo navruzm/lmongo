@@ -468,6 +468,25 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array('$and' => array(array('name' => 'John'), array('location' => array('$geoWithin' => array('$geometry' => array('type' => 'Polygon', 'coordinates' => array(array('100','120'), array('100','0')))))))), $builder->compileWheres($builder));
 	}
 
+	public function testWhereGeoIntersects()
+	{
+		$builder = $this->getBuilder();
+		$builder->whereGeoIntersects('location', 'Polygon', array(array('100','120'), array('100','0')));
+		$this->assertEquals(array('$and' => array(array('location' => array('$geoIntersects' => array('$geometry' => array('type' => 'Polygon', 'coordinates' => array(array('100','120'), array('100','0')))))))), $builder->compileWheres($builder));
+
+		$builder = $this->getBuilder();
+		$builder->where('name', 'John')->andWhereGeoIntersects('location', 'Polygon', array(array('100','120'), array('100','0')));
+		$this->assertEquals(array('$and' => array(array('name' => 'John'), array('location' => array('$geoIntersects' => array('$geometry' => array('type' => 'Polygon', 'coordinates' => array(array('100','120'), array('100','0')))))))), $builder->compileWheres($builder));
+
+		$builder = $this->getBuilder();
+		$builder->where('name', 'John')->orWhereGeoIntersects('location', 'Polygon', array(array('100','120'), array('100','0')));
+		$this->assertEquals(array('$or' => array(array('name' => 'John'), array('location' => array('$geoIntersects' => array('$geometry' => array('type' => 'Polygon', 'coordinates' => array(array('100','120'), array('100','0')))))))), $builder->compileWheres($builder));
+
+		$builder = $this->getBuilder();
+		$builder->where('name', 'John')->norWhereGeoIntersects('location', 'Polygon', array(array('100','120'), array('100','0')));
+		$this->assertEquals(array('$nor' => array(array('name' => 'John'), array('location' => array('$geoIntersects' => array('$geometry' => array('type' => 'Polygon', 'coordinates' => array(array('100','120'), array('100','0')))))))), $builder->compileWheres($builder));
+	}
+
 	public function testWhereSizes()
 	{
 		$builder = $this->getBuilder();
