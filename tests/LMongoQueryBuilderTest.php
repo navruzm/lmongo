@@ -441,56 +441,31 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array('$and' => array(array('name' => 'John'),array('location' => array('$nearSphere' => array('$geometry' => array('type' => 'Polygon', 'coordinates' => array(5, 3), '$maxDistance' => 10)))))), $builder->compileWheres($builder));
 	}
 
-	public function testWhereWithins()
+	public function testWhereGeoWithins()
 	{
 		$builder = $this->getBuilder();
-		$builder->whereWithin('location', 'box', array(array('100','120'), array('100','0')));
-		$this->assertEquals(array('$and' => array(array('location' => array('$within' => array('$box' => array(array('100','120'), array('100','0'))))))), $builder->compileWheres($builder));
+		$builder->whereGeoWithin('location', '$box', array(array('100','120'), array('100','0')));
+		$this->assertEquals(array('$and' => array(array('location' => array('$geoWithin' => array('$box' => array(array('100','120'), array('100','0'))))))), $builder->compileWheres($builder));
 
 		$builder = $this->getBuilder();
-		$builder->where('name', 'John')->andWhereWithin('location', 'box', array(array('100','120'), array('100','0')));
-		$this->assertEquals(array('$and' => array(array('name' => 'John'), array('location' => array('$within' => array('$box' => array(array('100','120'), array('100','0'))))))), $builder->compileWheres($builder));
+		$builder->where('name', 'John')->andWhereGeoWithin('location', '$box', array(array('100','120'), array('100','0')));
+		$this->assertEquals(array('$and' => array(array('name' => 'John'), array('location' => array('$geoWithin' => array('$box' => array(array('100','120'), array('100','0'))))))), $builder->compileWheres($builder));
 
 		$builder = $this->getBuilder();
-		$builder->where('name', 'John')->orWhereWithin('location', 'box', array(array('100','120'), array('100','0')));
-		$this->assertEquals(array('$or' => array(array('name' => 'John'), array('location' => array('$within' => array('$box' => array(array('100','120'), array('100','0'))))))), $builder->compileWheres($builder));
+		$builder->where('name', 'John')->orWhereGeoWithin('location', '$box', array(array('100','120'), array('100','0')));
+		$this->assertEquals(array('$or' => array(array('name' => 'John'), array('location' => array('$geoWithin' => array('$box' => array(array('100','120'), array('100','0'))))))), $builder->compileWheres($builder));
 
 		$builder = $this->getBuilder();
-		$builder->where('name', 'John')->norWhereWithin('location', 'box', array(array('100','120'), array('100','0')));
-		$this->assertEquals(array('$nor' => array(array('name' => 'John'), array('location' => array('$within' => array('$box' => array(array('100','120'), array('100','0'))))))), $builder->compileWheres($builder));
+		$builder->where('name', 'John')->norWhereGeoWithin('location', '$box', array(array('100','120'), array('100','0')));
+		$this->assertEquals(array('$nor' => array(array('name' => 'John'), array('location' => array('$geoWithin' => array('$box' => array(array('100','120'), array('100','0'))))))), $builder->compileWheres($builder));
 
 		$builder = $this->getBuilder();
-		$builder->whereWithin('location', 'center', array(array('100','120'), 10));
-		$this->assertEquals(array('$and' => array(array('location' => array('$within' => array('$center' => array(array('100','120'), 10)))))), $builder->compileWheres($builder));
+		$builder->whereGeoWithin('location', 'Polygon', array(array('100','120'), array('100','0')));
+		$this->assertEquals(array('$and' => array(array('location' => array('$geoWithin' => array('$geometry' => array('type' => 'Polygon', 'coordinates' => array(array('100','120'), array('100','0')))))))), $builder->compileWheres($builder));
 
 		$builder = $this->getBuilder();
-		$builder->where('name', 'John')->andWhereWithin('location', 'center', array(array('100','120'), 10));
-		$this->assertEquals(array('$and' => array(array('name' => 'John'), array('location' => array('$within' => array('$center' => array(array('100','120'), 10)))))), $builder->compileWheres($builder));
-
-		$builder = $this->getBuilder();
-		$builder->where('name', 'John')->orWhereWithin('location', 'center', array(array('100','120'), 10));
-		$this->assertEquals(array('$or' => array(array('name' => 'John'), array('location' => array('$within' => array('$center' => array(array('100','120'), 10)))))), $builder->compileWheres($builder));
-
-		$builder = $this->getBuilder();
-		$builder->where('name', 'John')->norWhereWithin('location', 'center', array(array('100','120'), 10));
-		$this->assertEquals(array('$nor' => array(array('name' => 'John'), array('location' => array('$within' => array('$center' => array(array('100','120'), 10)))))), $builder->compileWheres($builder));
-
-		$builder = $this->getBuilder();
-		$builder->whereWithin('location', 'polygon', array(array('0','0'), array('3','6'), array('6','0')));
-		$this->assertEquals(array('$and' => array(array('location' => array('$within' => array('$polygon' => array(array('0','0'), array('3','6'), array('6','0'))))))), $builder->compileWheres($builder));
-
-		$builder = $this->getBuilder();
-		$builder->where('name', 'John')->andWhereWithin('location', 'polygon', array(array('0','0'), array('3','6'), array('6','0')));
-		$this->assertEquals(array('$and' => array(array('name' => 'John'), array('location' => array('$within' => array('$polygon' => array(array('0','0'), array('3','6'), array('6','0'))))))), $builder->compileWheres($builder));
-
-		$builder = $this->getBuilder();
-		$builder->where('name', 'John')->orWhereWithin('location', 'polygon', array(array('0','0'), array('3','6'), array('6','0')));
-		$this->assertEquals(array('$or' => array(array('name' => 'John'), array('location' => array('$within' => array('$polygon' => array(array('0','0'), array('3','6'), array('6','0'))))))), $builder->compileWheres($builder));
-
-		$builder = $this->getBuilder();
-		$builder->where('name', 'John')->norWhereWithin('location', 'polygon', array(array('0','0'), array('3','6'), array('6','0')));
-		$this->assertEquals(array('$nor' => array(array('name' => 'John'), array('location' => array('$within' => array('$polygon' => array(array('0','0'), array('3','6'), array('6','0'))))))), $builder->compileWheres($builder));
-
+		$builder->where('name', 'John')->andWhereGeoWithin('location', 'Polygon', array(array('100','120'), array('100','0')));
+		$this->assertEquals(array('$and' => array(array('name' => 'John'), array('location' => array('$geoWithin' => array('$geometry' => array('type' => 'Polygon', 'coordinates' => array(array('100','120'), array('100','0')))))))), $builder->compileWheres($builder));
 	}
 
 	public function testWhereSizes()

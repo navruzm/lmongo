@@ -1017,55 +1017,65 @@ class Builder {
 	}
 
 	/**
-	 * Add an "$within geospatial operation" clause to logical operation.
+	 * Add an "$geoWithin geospatial operation" clause to logical operation.
 	 *
 	 * @param  string  $column
 	 * @param  string  $shape
 	 * @param  array   $coords
+	 * @param  string  $boolean
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereWithin($column, $shape, array $coords)
+	public function whereGeoWithin($column, $shape, array $coords, $boolean = 'first')
 	{
-		return $this->where($column, array('$within' => array('$'.$shape => $coords)), 'first');
+		if('$' == $shape[0])
+		{
+			$value = array('$geoWithin' => array($shape => $coords));
+		}
+		else
+		{
+			$value = array('$geoWithin' => array('$geometry' => array('type' => $shape, 'coordinates' => $coords)));
+		}
+
+		return $this->where($column, $value, $boolean);
 	}
 
 	/**
-	 * Add an "$within geospatial operation" clause to logical $and operation.
+	 * Add an "$geoWithin geospatial operation" clause to logical $and operation.
 	 *
 	 * @param  string  $column
 	 * @param  string  $shape
 	 * @param  array   $coords
 	 * @return LMongo\Query\Builder
 	 */
-	public function andWhereWithin($column, $shape, array $coords)
+	public function andWhereGeoWithin($column, $shape, array $coords)
 	{
-		return $this->where($column, array('$within' => array('$'.$shape => $coords)), '$and');
+		return $this->whereGeoWithin($column, $shape, $coords, '$and');
 	}
 
 	/**
-	 * Add an "$within geospatial operation" clause to logical $or operation.
+	 * Add an "$geoWithin geospatial operation" clause to logical $or operation.
 	 *
 	 * @param  string  $column
 	 * @param  string  $shape
 	 * @param  array   $coords
 	 * @return LMongo\Query\Builder
 	 */
-	public function orWhereWithin($column, $shape, array $coords)
+	public function orWhereGeoWithin($column, $shape, array $coords)
 	{
-		return $this->where($column, array('$within' => array('$'.$shape => $coords)), '$or');
+		return $this->whereGeoWithin($column, $shape, $coords, '$or');
 	}
 
 	/**
-	 * Add an "$within geospatial operation" clause to logical $nor operation.
+	 * Add an "$geoWithin geospatial operation" clause to logical $nor operation.
 	 *
 	 * @param  string  $column
 	 * @param  string  $shape
 	 * @param  array   $coords
 	 * @return LMongo\Query\Builder
 	 */
-	public function norWhereWithin($column, $shape, array $coords)
+	public function norWhereGeoWithin($column, $shape, array $coords)
 	{
-		return $this->where($column, array('$within' => array('$'.$shape => $coords)), '$nor');
+		return $this->whereGeoWithin($column, $shape, $coords, '$nor');
 	}
 
 	/**
