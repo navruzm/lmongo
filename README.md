@@ -89,8 +89,8 @@ $mongo = $LMongo->getMongoClient();
 $databases = $mongo->listDBs();
 ```
 
-Query Builder Usage
-===================
+Query Builder
+=============
 
 Wheres
 ------
