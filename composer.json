@@ -1,8 +1,8 @@
 {
     "name": "navruzm/lmongo",
     "type": "library",
-    "description": "LMongo is MongoDB Query Builder for Laravel 4 similar to Laravel's Query Builder.",
-    "keywords": ["L4", "MongoDB", "Laravel 4", "Laravel"],
+    "description": "LMongo is a MongoDB package for Laravel 4.",
+    "keywords": ["MongoDB", "Laravel 4"],
     "homepage": "http://github.com/navruzm/lmongo/",
     "license": "MIT",
     "require": {
