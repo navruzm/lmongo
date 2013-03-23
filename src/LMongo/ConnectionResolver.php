@@ -1,4 +1,4 @@
-<?php namespace Illuminate\Database;
+<?php namespace LMongo;
 
 class ConnectionResolver implements ConnectionResolverInterface {
 
