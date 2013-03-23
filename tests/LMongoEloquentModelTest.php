@@ -348,6 +348,13 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testUnderscorePropertiesAreNotFilled()
+	{
+		$model = new LMongoModelStub;
+		$model->fill(array('_method' => 'PUT'));
+		$this->assertEquals(array(), $model->getAttributes());
+	}
+
 	public function testGuarded()
 	{
 		$model = new LMongoModelStub;
