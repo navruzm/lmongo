@@ -1556,6 +1556,61 @@ class Builder {
 	}
 
 	/**
+	 * Execute a group command on the database.
+	 *
+	 * @param  array  $initial
+	 * @param  mixed  $reduce
+	 * @param  mixed  $columns
+	 * @param  array  $options
+	 * @return LMongo\Query\Cursor
+	 */
+	public function group(array $initial, $reduce, $columns = array(), array $options = array())
+	{
+		if (is_null($this->columns))
+		{
+			$this->columns = $columns;
+		}
+
+		if (is_string($this->columns))
+		{
+			$this->columns = new \MongoCode($this->columns);
+		}
+
+		if (is_string($reduce))
+		{
+			$reduce = new \MongoCode($reduce);
+		}
+
+		$conditions = $this->compileWheres($this);
+
+		if(count($conditions))
+		{
+			$options['condition'] = $conditions;
+		}
+
+		if (isset($options['finalize']) and is_string($options['finalize']))
+		{
+			$options['finalize'] = new \MongoCode($options['finalize']);
+		}
+
+		if(empty($options))
+		{
+			$result = $this->connection->{$this->collection}->group($this->columns, $initial, $reduce);
+		}
+		else
+		{
+			$result = $this->connection->{$this->collection}->group($this->columns, $initial, $reduce, $options);
+		}
+
+		if ( ! $result['ok'])
+		{
+			throw new \MongoException($result['errmsg']);
+		}
+
+		return $result['retval'];
+	}
+
+	/**
 	 * Insert a new document into the database.
 	 *
 	 * @param  array  $data

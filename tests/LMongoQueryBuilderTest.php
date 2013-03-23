@@ -681,6 +681,16 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(true, $result);
 	}
 
+	public function testGroupMethod()
+	{
+		$this->insertData();
+		$builder = $this->getBuilder();
+		$initial = array('count' => 0);
+		$reduce = 'function (obj, prev) { prev.count++; }';
+		$result = $builder->collection('test')->whereGt('no', 2)->group($initial, $reduce);
+		$this->assertEquals(2, $result[0]['count']);
+	}
+
 	public function testPaginateCorrectlyCreatesPaginatorInstance()
 	{
 		$connection = m::mock('LMongo\Connection');
@@ -692,10 +702,10 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 		$cursor->shouldReceive('countAll')->once()->andReturn(10);
 		$cursor->shouldReceive('toArray')->once()->andReturn(array('foo'));
 		$builder->expects($this->once())->method('forPage')->with($this->equalTo(1), $this->equalTo(15))->will($this->returnValue($builder));
-		$builder->expects($this->once())->method('get')->with($this->equalTo(array('*')))->will($this->returnValue($cursor));
+		$builder->expects($this->once())->method('get')->with($this->equalTo(array()))->will($this->returnValue($cursor));
 		$paginator->shouldReceive('make')->once()->with(array('foo'), 10, 15)->andReturn(array('results'));
 
-		$this->assertEquals(array('results'), $builder->paginate(15, array('*')));
+		$this->assertEquals(array('results'), $builder->paginate(15, array()));
 	}
 
 	protected function insertData()
