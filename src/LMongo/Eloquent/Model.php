@@ -723,7 +723,7 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	 * Set the keys for a save update query.
 	 *
 	 * @param  LMongo\Eloquent\Builder
-	 * @return void
+	 * @return LMongo\Eloquent\Builder
 	 */
 	protected function setKeysForSaveQuery($query)
 	{
