@@ -25,6 +25,21 @@ class LMongoEloquentRelationTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('bar', $wheres[0]['value']);
 	}
 
+	public function testTouchMethodUpdatesRelatedTimestamps()
+	{
+		$builder = m::mock('LMongo\Eloquent\Builder');
+		$parent = m::mock('LMongo\Eloquent\Model');
+		$parent->shouldReceive('getKey')->andReturn(1);
+		$builder->shouldReceive('getModel')->andReturn($related = m::mock('StdClass'));
+		$builder->shouldReceive('where');
+		$relation = new HasOne($builder, $parent, 'foreign_key');
+		$related->shouldReceive('getTable')->andReturn('table');
+		$related->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
+		$builder->shouldReceive('update')->once()->with(array('updated_at' => new MongoDate));
+
+		$relation->touch();
+	}
+
 }
 
 

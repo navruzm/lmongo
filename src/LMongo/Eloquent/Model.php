@@ -97,11 +97,11 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	protected $fillable = array();
 
 	/**
-	 * The attribute that aren't mass assignable.
+	 * The attributes that aren't mass assignable.
 	 *
 	 * @var array
 	 */
-	protected $guarded = array();
+	protected $guarded = array('*');
 
 	/**
 	 * The date fields for the model.clear
@@ -109,6 +109,13 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	 * @var array
 	 */
 	protected $dates = array();
+
+	/**
+	 * The relationships that should be touched on save.
+	 *
+	 * @var array
+	 */
+	protected $touches = array();
 
 	/**
 	 * The relations to eager load on every query.
@@ -151,6 +158,13 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	 * @var array
 	 */
 	protected static $booted = array();
+
+	/**
+	 * Indicates if all mass assignment is enabled.
+	 *
+	 * @var bool
+	 */
+	protected static $unguarded = false;
 
 	/**
 	 * The cache of the mutated attributes for each class.
@@ -233,6 +247,10 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 			{
 				$this->setAttribute($key, $value);
 			}
+			elseif ($this->totallyGuarded())
+			{
+				throw new MassAssignmentException($key);
+			}
 		}
 
 		return $this;
@@ -249,7 +267,7 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	{
 		// This method just provides a convenient way for us to generate fresh model
 		// instances of this current model. It is particularly useful during the
-		// hydration of new objects via the model query builder instances.
+		// hydration of new objects via the Eloquent query builder instances.
 		$model = new static((array) $attributes);
 
 		$model->exists = $exists;
@@ -267,9 +285,9 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	{
 		$instance = $this->newInstance(array(), true);
 
-	   	$instance->setRawAttributes((array) $attributes, true);
+		$instance->setRawAttributes((array) $attributes, true);
 
-    	return $instance;
+		return $instance;
 	}
 
 	/**
@@ -343,6 +361,20 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	}
 
 	/**
+	 * Find a model by its primary key or throw an exception.
+	 *
+	 * @param  mixed  $id
+	 * @param  array  $columns
+	 * @return LMongo\Eloquent\Model|Collection
+	 */
+	public static function findOrFail($id, $columns = array())
+	{
+		if ( ! is_null($model = static::find($id, $columns))) return $model;
+
+		throw new ModelNotFoundException;
+	}
+
+	/**
 	 * Being querying a model with eager loading.
 	 *
 	 * @param  array  $relations
@@ -410,7 +442,7 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 			$foreignKey = snake_case($caller['function']).'_id';
 		}
 
-		// Once we have the foreign key names, we'll just create a new model query
+		// Once we have the foreign key names, we'll just create a new Eloquent query
 		// for the related models and returns the relationship instance which will
 		// actually be responsible for retrieving and hydrating every relations.
 		$instance = new $related;
@@ -520,10 +552,37 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	{
 		if ($this->exists)
 		{
-			$key = $this->getKeyName();
+			// After firing the "deleting" event, we can go ahead and delete off the model
+			// then call the "deleted" event. These events could give the developer the
+			// opportunity to clear any relationships on the model or do other works.
+			$this->fireModelEvent('deleting', false);
 
-			return $this->newQuery()->where($key, new MongoID($this->getKey()))->delete();
+			$this->newQuery()->where($this->getKeyName(), new MongoID($this->getKey()))->delete();
+
+			$this->fireModelEvent('deleted', false);
 		}
+	}
+
+	/**
+	 * Register a saving model event with the dispatcher.
+	 *
+	 * @param  Closure  $callback
+	 * @return void
+	 */
+	public static function saving(Closure $callback)
+	{
+		static::registerModelEvent('saving', $callback);
+	}
+
+	/**
+	 * Register a saved model event with the dispatcher.
+	 *
+	 * @param  Closure  $callback
+	 * @return void
+	 */
+	public static function saved(Closure $callback)
+	{
+		static::registerModelEvent('saved', $callback);
 	}
 
 	/**
@@ -571,6 +630,28 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	}
 
 	/**
+	 * Register a deleting model event with the dispatcher.
+	 *
+	 * @param  Closure  $callback
+	 * @return void
+	 */
+	public static function deleting(Closure $callback)
+	{
+		static::registerModelEvent('deleting', $callback);
+	}
+
+	/**
+	 * Register a deleted model event with the dispatcher.
+	 *
+	 * @param  Closure  $callback
+	 * @return void
+	 */
+	public static function deleted(Closure $callback)
+	{
+		static::registerModelEvent('deleted', $callback);
+	}
+
+	/**
 	 * Register a model event with the dispatcher.
 	 *
 	 * @param  string   $event
@@ -604,6 +685,14 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 			$this->updateTimestamps();
 		}
 
+		// If the "saving" event returns false we'll bail out of the save and return
+		// false, indicating that the save failed. This gives an opportunities to
+		// listeners to cancel save operations if validations fail or whatever.
+		if ($this->fireModelEvent('saving') === false)
+		{
+			return false;
+		}
+
 		// If the model already exists in the database we can just update our record
 		// that is already in this database using the current IDs in this "where"
 		// clause to only update this model. Otherwise, we'll just insert them.
@@ -622,9 +711,23 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 			$this->exists = $saved;
 		}
 
-		$this->syncOriginal();
+		if ($saved) $this->finishSave();
 
 		return $saved;
+	}
+
+	/**
+	 * Finish processing on a successful save operation.
+	 *
+	 * @return void
+	 */
+	protected function finishSave()
+	{
+		$this->syncOriginal();
+
+		$this->fireModelEvent('saved', false);
+
+		$this->touchOwners();
 	}
 
 	/**
@@ -701,8 +804,23 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	}
 
 	/**
+	 * Touch the owning relations of the model.
+	 *
+	 * @return void
+	 */
+	public function touchOwners()
+	{
+		foreach ($this->touches as $relation)
+		{
+			$this->$relation()->touch();
+		}
+	}
+
+	/**
 	 * Fire the given event for the model.
 	 *
+	 * @param  string $event
+	 * @param  bool   $halt
 	 * @return mixed
 	 */
 	protected function fireModelEvent($event, $halt = true)
@@ -1010,6 +1128,27 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	}
 
 	/**
+	 * Disable all mass assignable restrictions.
+	 *
+	 * @return void
+	 */
+	public static function unguard()
+	{
+		static::$unguarded = true;
+	}
+
+	/**
+	 * Set "unguard" to a given state.
+	 *
+	 * @param  bool  $state
+	 * @return void
+	 */
+	public static function setUnguardState($state)
+	{
+		static::$unguarded = $state;
+	}
+
+	/**
 	 * Determine if the given attribute may be mass assigned.
 	 *
 	 * @param  string  $key
@@ -1017,14 +1156,58 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	 */
 	public function isFillable($key)
 	{
+		if (static::$unguarded) return true;
+
+		// If the key is in the "fillable" array, we can of course assume tha it is
+		// a fillable attribute. Otherwise, we will check the guarded array when
+		// we need to determine if the attribute is black-listed on the model.
 		if (in_array($key, $this->fillable)) return true;
 
-		if (in_array($key, $this->guarded) or $this->guarded == array('*'))
-		{
-			return false;
-		}
+		if ($this->isGuarded($key)) return false;
 
 		return empty($this->fillable) and ! starts_with($key, '_');
+	}
+
+	/**
+	 * Determine if the given key is guarded.
+	 *
+	 * @param  string  $key
+	 * @return bool
+	 */
+	public function isGuarded($key)
+	{
+		return in_array($key, $this->guarded) or $this->guarded == array('*');
+	}
+
+	/**
+	 * Determine if the model is totally guarded.
+	 *
+	 * @return bool
+	 */
+	public function totallyGuarded()
+	{
+		return count($this->fillable) == 0 and $this->guarded == array('*');
+	}
+
+	/**
+	 * Get the relationships that are touched on save.
+	 *
+	 * @return array
+	 */
+	public function getTouchedRelations()
+	{
+		return $this->touches;
+	}
+
+	/**
+	 * Set the relationships that are touched on save.
+	 *
+	 * @param  array  $touches
+	 * @return void
+	 */
+	public function setTouchedRelations(array $touches)
+	{
+		$this->touches = $touches;
 	}
 
 	/**
@@ -1365,7 +1548,7 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	/**
 	 * Sync the original attributes with the current.
 	 *
-	 * @return void
+	 * @return LMongo\Eloquent\Model
 	 */
 	public function syncOriginal()
 	{

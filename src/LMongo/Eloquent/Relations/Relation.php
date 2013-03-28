@@ -1,5 +1,6 @@
 <?php namespace LMongo\Eloquent\Relations;
 
+use MongoDate;
 use LMongo\Eloquent\Model;
 use LMongo\Eloquent\Builder;
 use LMongo\Eloquent\Collection;
@@ -7,7 +8,7 @@ use LMongo\Eloquent\Collection;
 abstract class Relation {
 
 	/**
-	 * Model query builder instance.
+	 * The Eloquent query builder instance.
 	 *
 	 * @var LMongo\Eloquent\Builder
 	 */
@@ -85,6 +86,29 @@ abstract class Relation {
 	abstract public function getResults();
 
 	/**
+	 * Touch all of the related models for the relationship.
+	 *
+	 * @return void
+	 */
+	public function touch()
+	{
+		$column = $this->getRelated()->getUpdatedAtColumn();
+
+		$this->rawUpdate(array($column => new MongoDate));
+	}
+
+	/**
+	 * Run a raw update against the base query.
+	 *
+	 * @param  array  $attributes
+	 * @return int
+	 */
+	public function rawUpdate(array $attributes = array())
+	{
+		return $this->query->update($attributes);
+	}
+
+	/**
 	 * Remove the original where clause set by the relationship.
 	 *
 	 * The remaining constraints on the query will be reset and returned.
@@ -134,7 +158,7 @@ abstract class Relation {
 	}
 
 	/**
-	 * Get the base query builder driving the model builder.
+	 * Get the base query builder driving the Eloquent builder.
 	 *
 	 * @return LMongo\Query\Builder
 	 */

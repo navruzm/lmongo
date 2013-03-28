@@ -98,8 +98,10 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
 		$model->expects($this->once())->method('updateTimestamps');
 		$model->setEventDispatcher($events = m::mock('Illuminate\Events\Dispatcher'));
+		$events->shouldReceive('until')->once()->with('lmongo.saving: '.get_class($model), $model)->andReturn(true);
 		$events->shouldReceive('until')->once()->with('lmongo.updating: '.get_class($model), $model)->andReturn(true);
 		$events->shouldReceive('fire')->once()->with('lmongo.updated: '.get_class($model), $model)->andReturn(true);
+		$events->shouldReceive('fire')->once()->with('lmongo.saved: '.get_class($model), $model)->andReturn(true);
 
 		$model->foo = 'bar';
 		// make sure foo isn't synced so we can test that dirty attributes only are updated
@@ -111,6 +113,19 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testSaveIsCancelledIfSavingEventReturnsFalse()
+	{
+		$model = $this->getMock('LMongoModelStub', array('newQuery'));
+		$query = m::mock('LMongo\Eloquent\Builder');
+		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
+		$model->setEventDispatcher($events = m::mock('Illuminate\Events\Dispatcher'));
+		$events->shouldReceive('until')->once()->with('lmongo.saving: '.get_class($model), $model)->andReturn(false);
+		$model->exists = true;
+
+		$this->assertFalse($model->save());
+	}
+
+
 	public function testUpdateIsCancelledIfUpdatingEventReturnsFalse()
 	{
 		$model = $this->getMock('LMongoModelStub', array('newQuery'));
@@ -118,6 +133,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
 		$model->setEventDispatcher($events = m::mock('Illuminate\Events\Dispatcher'));
 		$events->shouldReceive('until')->once()->with('lmongo.updating: '.get_class($model), $model)->andReturn(false);
+		$events->shouldReceive('until')->once()->with('lmongo.saving: '.get_class($model), $model)->andReturn(true);
 		$model->exists = true;
 
 		$this->assertFalse($model->save());
@@ -194,8 +210,10 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$model->expects($this->once())->method('updateTimestamps');
 
 		$model->setEventDispatcher($events = m::mock('Illuminate\Events\Dispatcher'));
+		$events->shouldReceive('until')->once()->with('lmongo.saving: '.get_class($model), $model)->andReturn(true);
 		$events->shouldReceive('until')->once()->with('lmongo.creating: '.get_class($model), $model)->andReturn(true);
 		$events->shouldReceive('fire')->once()->with('lmongo.created: '.get_class($model), $model);
+		$events->shouldReceive('fire')->once()->with('lmongo.saved: '.get_class($model), $model);
 
 		$model->name = 'taylor';
 		$model->exists = false;
@@ -211,6 +229,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$query = m::mock('LMongo\Eloquent\Builder');
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
 		$model->setEventDispatcher($events = m::mock('Illuminate\Events\Dispatcher'));
+		$events->shouldReceive('until')->once()->with('lmongo.saving: '.get_class($model), $model)->andReturn(true);
 		$events->shouldReceive('until')->once()->with('lmongo.creating: '.get_class($model), $model)->andReturn(false);
 
 		$this->assertFalse($model->save());
@@ -341,10 +360,21 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	{
 		$model = new LMongoModelStub;
 		$model->fillable(array('name', 'age'));
-		$model->fill(array('name' => 'foo', 'age' => 'bar', 'password' => 'baz'));
-		$this->assertFalse(isset($model->password));
+		$model->fill(array('name' => 'foo', 'age' => 'bar'));
 		$this->assertEquals('foo', $model->name);
 		$this->assertEquals('bar', $model->age);
+	}
+
+
+	public function testUnguardAllowsAnythingToBeSet()
+	{
+		$model = new LMongoModelStub;
+		LMongoModelStub::unguard();
+		$model->guard(array('*'));
+		$model->fill(array('name' => 'foo', 'age' => 'bar'));
+		$this->assertEquals('foo', $model->name);
+		$this->assertEquals('bar', $model->age);
+		LMongoModelStub::setUnguardState(false);
 	}
 
 
@@ -355,21 +385,26 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array(), $model->getAttributes());
 	}
 
+
 	public function testGuarded()
 	{
 		$model = new LMongoModelStub;
 		$model->guard(array('name', 'age'));
-		$model->fill(array('name' => 'foo', 'age' => 'bar', 'votes' => 'baz'));
+		$model->fill(array('name' => 'foo', 'age' => 'bar', 'foo' => 'bar'));
 		$this->assertFalse(isset($model->name));
 		$this->assertFalse(isset($model->age));
-		$this->assertEquals('baz', $model->votes);
+		$this->assertEquals('bar', $model->foo);
+	}
 
+
+	/**
+	 * @expectedException LMongo\Eloquent\MassAssignmentException
+	 */
+	public function testGlobalGuarded()
+	{
 		$model = new LMongoModelStub;
 		$model->guard(array('*'));
 		$model->fill(array('name' => 'foo', 'age' => 'bar', 'votes' => 'baz'));
-		$this->assertFalse(isset($model->name));
-		$this->assertFalse(isset($model->age));
-		$this->assertFalse(isset($model->votes));
 	}
 
 
@@ -508,6 +543,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 
 class LMongoModelStub extends LMongo\Eloquent\Model {
 	protected $collection = 'stub';
+	protected $guarded = array();
 	public function getListItemsAttribute($value)
 	{
 		return json_decode($value, true);
@@ -549,6 +585,7 @@ class LMongoDateModelStub extends LMongoModelStub {
 
 class LMongoModelSaveStub extends LMongo\Eloquent\Model {
 	protected $collection = 'save_stub';
+	protected $guarded = array();
 	public function save() { $_SERVER['__l_mongo.saved'] = true; }
 }
 
