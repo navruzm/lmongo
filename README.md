@@ -281,6 +281,13 @@ $price = LMongo::collection('orders')->avg('price');
 $total = LMongo::collection('users')->sum('votes');
 ```
 
+Distinct
+----------
+
+```php
+$emails = LMongo::collection('users')->distinct('email');
+```
+
 Inserts
 -------
 
