@@ -375,6 +375,19 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	}
 
 	/**
+	 * Eager load relations on the model.
+	 *
+	 * @param  dynamic  string
+	 * @return void
+	 */
+	public function load()
+	{
+		$query = $this->newQuery()->with(func_get_args());
+
+		$query->eagerLoadRelations(array($this));
+	}
+
+	/**
 	 * Being querying a model with eager loading.
 	 *
 	 * @param  array  $relations
@@ -472,11 +485,11 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 			$name = snake_case($caller['function']);
 		}
 
-		list($type, $id) = $this->getMorphs($name, $type, $id);
-
 		// Next we will guess the type and ID if necessary. The type and IDs may also
 		// be passed into the function so that the developers may manually specify
 		// them on the relations. Otherwise, we will just make a great estimate.
+		list($type, $id) = $this->getMorphs($name, $type, $id);
+
 		$class = $this->$type;
 
 		return $this->belongsTo($class, $id);
@@ -544,6 +557,34 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	}
 
 	/**
+	 * Destroy the models for the given IDs.
+	 *
+	 * @param  array|int  $ids
+	 * @return void
+	 */
+	public static function destroy($ids)
+	{
+		$ids = is_array($ids) ? $ids : func_get_args();
+
+		$ids = array_map(function($value)
+			{
+				return ($value instanceof MongoID) ? $value : new MongoID($value);
+			}, $ids);
+
+		$instance = new static;
+
+		// We will actually pull the models from the database table and call delete on
+		// each of them individually so that their events get fired properly with a
+		// correct set of attributes in case the developers wants to check these.
+		$key = $instance->getKeyName();
+
+		foreach ($instance->whereIn($key, $ids)->get() as $model)
+		{
+			$model->delete();
+		}
+	}
+
+	/**
 	 * Delete the model from the database.
 	 *
 	 * @return void
@@ -552,46 +593,48 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	{
 		if ($this->exists)
 		{
-			// After firing the "deleting" event, we can go ahead and delete off the model
-			// then call the "deleted" event. These events could give the developer the
-			// opportunity to clear any relationships on the model or do other works.
-			$this->fireModelEvent('deleting', false);
+			if ($this->fireModelEvent('deleting') === false) return false;
+
+			// Here, we'll touch the owning models, verifying these timestamps get updated
+			// for the models. This will allow any caching to get broken on the parents
+			// by the timestamp. Then we will go ahead and delete the model instance.
+			$this->touchOwners();
 
 			$this->newQuery()->where($this->getKeyName(), new MongoID($this->getKey()))->delete();
 
 			$this->fireModelEvent('deleted', false);
 		}
 	}
-
+	
 	/**
 	 * Register a saving model event with the dispatcher.
 	 *
-	 * @param  Closure  $callback
+	 * @param  Closure|string  $callback
 	 * @return void
 	 */
-	public static function saving(Closure $callback)
+	public static function saving($callback)
 	{
 		static::registerModelEvent('saving', $callback);
 	}
-
+	
 	/**
 	 * Register a saved model event with the dispatcher.
 	 *
-	 * @param  Closure  $callback
+	 * @param  Closure|string  $callback
 	 * @return void
 	 */
-	public static function saved(Closure $callback)
+	public static function saved($callback)
 	{
 		static::registerModelEvent('saved', $callback);
 	}
-
+	
 	/**
 	 * Register an updating model event with the dispatcher.
 	 *
-	 * @param  Closure  $callback
+	 * @param  Closure|string  $callback
 	 * @return void
 	 */
-	public static function updating(Closure $callback)
+	public static function updating($callback)
 	{
 		static::registerModelEvent('updating', $callback);
 	}
@@ -599,10 +642,10 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	/**
 	 * Register an updated model event with the dispatcher.
 	 *
-	 * @param  Closure  $callback
+	 * @param  Closure|string  $callback
 	 * @return void
 	 */
-	public static function updated(Closure $callback)
+	public static function updated($callback)
 	{
 		static::registerModelEvent('updated', $callback);
 	}
@@ -610,10 +653,10 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	/**
 	 * Register a creating model event with the dispatcher.
 	 *
-	 * @param  Closure  $callback
+	 * @param  Closure|string  $callback
 	 * @return void
 	 */
-	public static function creating(Closure $callback)
+	public static function creating($callback)
 	{
 		static::registerModelEvent('creating', $callback);
 	}
@@ -621,10 +664,10 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	/**
 	 * Register a created model event with the dispatcher.
 	 *
-	 * @param  Closure  $callback
+	 * @param  Closure|string  $callback
 	 * @return void
 	 */
-	public static function created(Closure $callback)
+	public static function created($callback)
 	{
 		static::registerModelEvent('created', $callback);
 	}
@@ -632,10 +675,10 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	/**
 	 * Register a deleting model event with the dispatcher.
 	 *
-	 * @param  Closure  $callback
+	 * @param  Closure|string  $callback
 	 * @return void
 	 */
-	public static function deleting(Closure $callback)
+	public static function deleting($callback)
 	{
 		static::registerModelEvent('deleting', $callback);
 	}
@@ -643,10 +686,10 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	/**
 	 * Register a deleted model event with the dispatcher.
 	 *
-	 * @param  Closure  $callback
+	 * @param  Closure|string  $callback
 	 * @return void
 	 */
-	public static function deleted(Closure $callback)
+	public static function deleted($callback)
 	{
 		static::registerModelEvent('deleted', $callback);
 	}
@@ -655,10 +698,10 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	 * Register a model event with the dispatcher.
 	 *
 	 * @param  string   $event
-	 * @param  Closure  $callback
+	 * @param  Closure|string  $callback
 	 * @return void
 	 */
-	protected static function registerModelEvent($event, Closure $callback)
+	protected static function registerModelEvent($event, $callback)
 	{
 		if (isset(static::$dispatcher))
 		{
@@ -669,6 +712,22 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	}
 
 	/**
+	 * Update the model in the database.
+	 *
+	 * @param  array  $attributes
+	 * @return mixed
+	 */
+	public function update(array $attributes = array())
+	{
+		if ( ! $this->exists)
+		{
+			return $this->newQuery()->update($attributes);
+		}
+
+		return $this->fill($attributes)->save();	
+	}
+
+	/**
 	 * Save the model to the database.
 	 *
 	 * @return bool
@@ -676,14 +735,6 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	public function save()
 	{
 		$query = $this->newQuery();
-
-		// First we need to create a fresh query instance and touch the creation and
-		// update timestamp on the model which are maintained by us for developer
-		// convenience. Then we will just continue saving the model instances.
-		if ($this->timestamps)
-		{
-			$this->updateTimestamps();
-		}
 
 		// If the "saving" event returns false we'll bail out of the save and return
 		// false, indicating that the save failed. This gives an opportunities to
@@ -750,19 +801,22 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 				return false;
 			}
 
-			// Perform update if the key is present.
-			// Othervise mongo saves this model as a new document.
-			if( ! is_null($this->getKey()))
+			// First we need to create a fresh query instance and touch the creation and
+			// update timestamp on the model which are maintained by us for developer
+			// convenience. Then we will just continue saving the model instances.
+			if ($this->timestamps)
 			{
+				$this->updateTimestamps();
+
 				$dirty = $this->getDirty();
-
-				// Once we have run the update operation, we will fire the "updated" event for
-				// this model instance. This will allow developers to hook into these after
-				// models are updated, giving them a chance to do any special processing.
-				$this->setKeysForSaveQuery($query)->update($dirty);
-
-				$this->fireModelEvent('updated', false);
 			}
+
+			// Once we have run the update operation, we will fire the "updated" event for
+			// this model instance. This will allow developers to hook into these after
+			// models are updated, giving them a chance to do any special processing.
+			$this->setKeysForSaveQuery($query)->update($dirty);
+
+			$this->fireModelEvent('updated', false);
 		}
 
 		return true;
@@ -778,11 +832,19 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	{
 		if ($this->fireModelEvent('creating') === false) return false;
 
-		$attributes = $this->attributes;
+		// First we'll need to create a fresh query instance and touch the creation and
+		// update timestamps on this model, which are maintained by us for developer
+		// convenience. After, we will just continue saving these model instances.
+		if ($this->timestamps)
+		{
+			$this->updateTimestamps();
+		}
 
 		// If the model has an incrementing key, we can use the "insertGetId" method on
 		// the query builder, which will give us back the final inserted ID for this
 		// table from the database. Not all tables have to be incrementing though.
+		$attributes = $this->attributes;
+
 		if ($this->incrementing)
 		{
 			$keyName = $this->getKeyName();
@@ -814,6 +876,17 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 		{
 			$this->$relation()->touch();
 		}
+	}
+
+	/**
+	 * Determine if the model touches a given relation.
+	 *
+	 * @param  string  $relation
+	 * @return bool
+	 */
+	public function touches($relation)
+	{
+		return in_array($relation, $this->touches);
 	}
 
 	/**
@@ -1135,6 +1208,16 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	public static function unguard()
 	{
 		static::$unguarded = true;
+	}
+
+	/**
+	 * Enable the mass assignment restrictions.
+	 *
+	 * @return void
+	 */
+	public static function reguard()
+	{
+		static::$unguarded = false;
 	}
 
 	/**

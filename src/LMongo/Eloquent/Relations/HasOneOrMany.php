@@ -161,9 +161,7 @@ abstract class HasOneOrMany extends Relation {
 	{
 		$model->setAttribute($this->foreignKey, new MongoID($this->parent->getKey()));
 
-		$model->save();
-
-		return $model;
+		return $model->save() ? $model : false;
 	}
 
 	/**

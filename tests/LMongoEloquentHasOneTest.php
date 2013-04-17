@@ -16,7 +16,7 @@ class LMongoEloquentHasOneTest extends PHPUnit_Framework_TestCase {
 	{
 		$relation = $this->getRelation();
 		$mockModel = $this->getMock('LMongo\Eloquent\Model', array('save'));
-		$mockModel->expects($this->once())->method('save');
+		$mockModel->expects($this->once())->method('save')->will($this->returnValue(true));
 		$result = $relation->save($mockModel);
 
 		$attributes = $result->getAttributes();

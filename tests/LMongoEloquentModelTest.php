@@ -75,6 +75,12 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testDestroyMethodCallsQueryBuilderCorrectly()
+	{
+	 	$result = LMongoModelDestroyStub::destroy('51116e8bd38e182e63000000', '51116e8bd38e182e63000001');
+	}
+
+
 	public function testWithMethodCallsQueryBuilderCorrectly()
 	{
 		$result = LMongoModelWithStub::with('foo', 'bar');
@@ -135,6 +141,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$events->shouldReceive('until')->once()->with('lmongo.updating: '.get_class($model), $model)->andReturn(false);
 		$events->shouldReceive('until')->once()->with('lmongo.saving: '.get_class($model), $model)->andReturn(true);
 		$model->exists = true;
+		$model->foo = 'bar';
 
 		$this->assertFalse($model->save());
 	}
@@ -142,13 +149,14 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 
 	public function testUpdateProcessWithoutTimestamps()
 	{
-		$model = $this->getMock('LMongoModelStub', array('newQuery', 'updateTimestamps'));
+		$model = $this->getMock('LMongoModelStub', array('newQuery', 'updateTimestamps', 'fireModelEvent'));
 		$model->timestamps = false;
 		$query = m::mock('LMongo\Eloquent\Builder');
 		$query->shouldReceive('where')->once()->with('_id', 'MongoID');
 		$query->shouldReceive('update')->once()->with(array('_id' => 1, 'name' => 'taylor'));
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
 		$model->expects($this->never())->method('updateTimestamps');
+		$model->expects($this->any())->method('fireModelEvent')->will($this->returnValue(true));
 
 		$model->_id = 1;
 		$model->name = 'taylor';
@@ -239,11 +247,12 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 
 	public function testDeleteProperlyDeletesModel()
 	{
-		$model = $this->getMock('LMongo\Eloquent\Model', array('newQuery', 'updateTimestamps'));
+		$model = $this->getMock('LMongo\Eloquent\Model', array('newQuery', 'updateTimestamps', 'touchOwners'));
 		$query = m::mock('stdClass');
 		$query->shouldReceive('where')->once()->with('_id', 'MongoID')->andReturn($query);
 		$query->shouldReceive('delete')->once();
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
+		$model->expects($this->once())->method('touchOwners');
 		$model->exists = true;
 		$model->id = 1;
 		$model->delete();
@@ -594,6 +603,17 @@ class LMongoModelFindStub extends LMongo\Eloquent\Model {
 	{
 		$mock = m::mock('LMongo\Eloquent\Builder');
 		$mock->shouldReceive('find')->once()->with('51116e8bd38e182e63000000', array())->andReturn('foo');
+		return $mock;
+	}
+}
+
+class LMongoModelDestroyStub extends LMongo\Eloquent\Model {
+	public function newQuery()
+	{
+		$mock = m::mock('LMongo\Eloquent\Builder');
+		$mock->shouldReceive('whereIn')->once()->with('_id', array(new MongoID('51116e8bd38e182e63000000'), new MongoID('51116e8bd38e182e63000001')))->andReturn($mock);
+		$mock->shouldReceive('get')->once()->andReturn(array($model = m::mock('StdClass')));
+		$model->shouldReceive('delete')->once();
 		return $mock;
 	}
 }
