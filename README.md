@@ -68,11 +68,11 @@ $LMongo = LMongo::connection('othermongodbserver');
 LMongo uses magic method to pass the collection name to the Database class and return MongoCollection instance. Then you can use any of [MongoCollection methods](http://php.net/manual/en/class.mongocollection.php):
 
 ```php
-$item = $LMongo->collection_name->findOne(array('key', 'value'));
+$item = $LMongo->collection_name->findOne(array('key' => 'value'));
 
-$items = $LMongo->collection_name->find(array('key', 'value'))->limit(5);
+$items = $LMongo->collection_name->find(array('key' => 'value'))->limit(5);
 
-$LMongo->collection_name->remove(array('key', 'value'));
+$LMongo->collection_name->remove(array('key' => 'value'));
 ```
 Get the [MongoDB](http://php.net/manual/en/class.mongodb.php) object:
 
