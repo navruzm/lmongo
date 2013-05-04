@@ -584,44 +584,48 @@ class Builder {
 	 * Add an "$exists element operation" clause to logical operation.
 	 *
 	 * @param  string  $column
+	 * @param  boolean  $exists
 	 * @return LMongo\Query\Builder
 	 */
-	public function whereExists($column)
+	public function whereExists($column, $exists = true)
 	{
-		return $this->where($column, array('$exists' => true), 'first');
+		return $this->where($column, array('$exists' => $exists), 'first');
 	}
 
 	/**
 	 * Add an "$exists element operation" clause to logical $and operation.
 	 *
 	 * @param  string  $column
+	 * @param  boolean  $exists
 	 * @return LMongo\Query\Builder
 	 */
-	public function andWhereExists($column)
+	public function andWhereExists($column, $exists = true)
 	{
-		return $this->where($column, array('$exists' => true), '$and');
+		return $this->where($column, array('$exists' => $exists), '$and');
 	}
 
 	/**
 	 * Add an "$exists element operation" clause to logical $or operation.
 	 *
 	 * @param  string  $column
+	 * @param  boolean  $exists
 	 * @return LMongo\Query\Builder
 	 */
-	public function orWhereExists($column)
+	public function orWhereExists($column, $exists = true)
 	{
-		return $this->where($column, array('$exists' => true), '$or');
+		return $this->where($column, array('$exists' => $exists), '$or');
 	}
 
 	/**
 	 * Add an "$exists element operation" clause to logical $nor operation.
 	 *
 	 * @param  string  $column
+	 * @param  boolean  $exists
 	 * @return LMongo\Query\Builder
 	 */
-	public function norWhereExists($column)
+	public function norWhereExists($column, $exists = true)
 	{
-		return $this->where($column, array('$exists' => true), '$nor');
+		return $this->where($column, array('$exists' => $exists), '$nor');
 	}
 
 	/**

@@ -245,6 +245,10 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 		$builder = $this->getBuilder();
 		$builder->where('name', 'John')->norWhereExists('updated_at');
 		$this->assertEquals(array('$nor' => array(array('name' => 'John'), array('updated_at' => array('$exists' => true)))), $builder->compileWheres($builder));
+
+		$builder = $this->getBuilder();
+		$builder->whereExists('updated_at', false);
+		$this->assertEquals(array('$and' => array(array('updated_at' => array('$exists' => false)))), $builder->compileWheres($builder));
 	}
 
 	public function testWhereTypes()
