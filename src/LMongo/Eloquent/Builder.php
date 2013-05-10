@@ -1,6 +1,7 @@
 <?php namespace LMongo\Eloquent;
 
 use Closure;
+use MongoID;
 use LMongo\Query\Builder as QueryBuilder;
 
 class Builder {
@@ -63,6 +64,11 @@ class Builder {
 	 */
 	public function find($id, $columns = array())
 	{
+		if ( ! $id instanceof MongoID)
+		{
+			$id = new MongoID($id);
+		}
+
 		$this->query->where($this->model->getKeyName(), $id);
 
 		return $this->first($columns);

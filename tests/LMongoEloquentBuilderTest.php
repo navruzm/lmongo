@@ -14,7 +14,7 @@ class LMongoEloquentBuilderTest extends PHPUnit_Framework_TestCase {
 	public function testFindMethod()
 	{
 		$query = m::mock('LMongo\Query\Builder');
-		$query->shouldReceive('where')->once()->with('foo', 'bar');
+		$query->shouldReceive('where')->once()->with('foo', 'MongoID');
 		$builder = $this->getMock('LMongo\Eloquent\Builder', array('first'), array($query));
  		$model = m::mock('LMongo\Eloquent\Model');
 		$model->shouldReceive('getKeyName')->once()->andReturn('foo');
