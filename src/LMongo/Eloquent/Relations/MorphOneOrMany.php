@@ -23,8 +23,8 @@ abstract class MorphOneOrMany extends HasOneOrMany {
 	/**
 	 * Create a new has many relationship instance.
 	 *
-	 * @param  LMongo\Eloquent\Builder  $query
-	 * @param  LMongo\Eloquent\Model  $parent
+	 * @param  \LMongo\Eloquent\Builder  $query
+	 * @param  \LMongo\Eloquent\Model  $parent
 	 * @param  string  $type
 	 * @param  string  $id
 	 * @return void
@@ -73,9 +73,9 @@ abstract class MorphOneOrMany extends HasOneOrMany {
 	public function getAndResetWheres()
 	{
 		// We actually need to remove two where clauses from polymorphic queries so we
-		// will make an extra call to remove the first where clause here so that we
-		// remove two total where clause from the query leaving only custom ones.
-		$this->removeFirstWhereClause();
+		// will make an extra call to clear the second where clause here so that it
+		// will not get in the way. This parent method will remove the other one.
+		$this->removeSecondWhereClause();
 
 		return parent::getAndResetWheres();
 	}
@@ -83,8 +83,8 @@ abstract class MorphOneOrMany extends HasOneOrMany {
 	/**
 	 * Attach a model instance to the parent model.
 	 *
-	 * @param  LMongo\Eloquent\Model  $model
-	 * @return LMongo\Eloquent\Model
+	 * @param  \LMongo\Eloquent\Model  $model
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function save(Model $model)
 	{
@@ -97,7 +97,7 @@ abstract class MorphOneOrMany extends HasOneOrMany {
 	 * Create a new instance of the related model.
 	 *
 	 * @param  array  $attributes
-	 * @return LMongo\Eloquent\Model
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function create(array $attributes)
 	{

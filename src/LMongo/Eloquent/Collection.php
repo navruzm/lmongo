@@ -5,27 +5,19 @@ use Illuminate\Support\Collection as BaseCollection;
 class Collection extends BaseCollection {
 
 	/**
-	 * A dictionary of available primary keys.
-	 *
-	 * @var array
-	 */
-	protected $dictionary = array();
-
-	/**
 	 * Find a model in the collection by key.
 	 *
 	 * @param  mixed  $key
 	 * @param  mixed  $default
-	 * @return LMongo\Eloquent\Model
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function find($key, $default = null)
 	{
-		if (count($this->dictionary) == 0)
+		return array_first($this->items, function($key, $model) use ($key)
 		{
-			$this->buildDictionary();
-		}
+			return $model->getKey() == $key;
 
-		return array_get($this->dictionary, $key, $default);
+		}, $default);
 	}
 
 	/**
@@ -48,27 +40,11 @@ class Collection extends BaseCollection {
 	 * Add an item to the collection.
 	 *
 	 * @param  mixed  $item
-	 * @return LMongo\Eloquent\Collection
+	 * @return \LMongo\Eloquent\Collection
 	 */
 	public function add($item)
 	{
 		$this->items[] = $item;
-
-		// If the dictionary is empty, we will re-build it upon adding the item so
-		// we can quickly search it from the "contains" method. This dictionary
-		// will give us faster look-up times while searching for given items.
-		if (count($this->dictionary) == 0)
-		{
-			$this->buildDictionary();
-		}
-
-		// If this dictionary has already been initially hydrated, we just need to
-		// add an entry for the added item, which we will do here so that we'll
-		// be able to quickly determine it is in the array when asked for it.
-		elseif ($item instanceof Model)
-		{
-			$this->dictionary[$item->getKey()] = true;
-		}
 
 		return $this;
 	}
@@ -81,33 +57,46 @@ class Collection extends BaseCollection {
 	 */
 	public function contains($key)
 	{
-		if (count($this->dictionary) == 0)
-		{
-			$this->buildDictionary();
-		}
-
-		return isset($this->dictionary[$key]);
+		return ! is_null($this->find($key));
 	}
 
 	/**
-	 * Build the dictionary of primary keys.
+	 * Get an array with the values of a given key.
 	 *
-	 * @return void
+	 * @param  string  $column
+	 * @param  string  $key
+	 * @return array
 	 */
-	protected function buildDictionary()
+	public function lists($value, $key = null)
 	{
-		$this->dictionary = array();
+		$results = array();
 
-		// By building the dictionary of items by key, we are able to more quickly
-		// access the array and examine it for certain items. This is useful on
-		// the contain method which searches through the list by primary key.
 		foreach ($this->items as $item)
 		{
-			if ($item instanceof Model)
+			// If the key is "null", we will just append the value to the array and keep
+			// looping. Otherwise we will key the array using the value of the key we
+			// received from the developer. Then we'll return the final array form.
+			if (is_null($key))
 			{
-				$this->dictionary[$item->getKey()] = $item;
+				$results[] = $item->{$value};
+			}
+			else
+			{
+				$results[$item->{$key}] = $item->{$value};
 			}
 		}
+
+		return $results;
+	}
+
+	/**
+	 * Get the array of primary keys
+	 *
+	 * @return array
+	 */
+	public function modelKeys()
+	{
+		return array_map(function($m) { return $m->getKey(); }, $this->items);
 	}
 
 }

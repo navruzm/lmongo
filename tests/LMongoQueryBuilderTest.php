@@ -712,6 +712,24 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array('results'), $builder->paginate(15, array()));
 	}
 
+	public function testCaching()
+	{
+		$connection = m::mock('LMongo\Connection');
+		$connection->shouldReceive('getName')->andReturn('connection_name');
+		$connection->shouldReceive('getCacheManager')->once()->andReturn($cache = m::mock('StdClass'));
+
+		$builder = $this->getMock('LMongo\Query\Builder', array('getFresh'), array($connection));
+		$builder->expects($this->once())->method('getFresh')->with($this->equalTo(array()))->will($this->returnValue(array('results')));
+		$query = $builder->collection('users')->where('email', 'foo@bar.com')->remember(5);
+
+		$cache->shouldReceive('remember')
+	                     ->once()
+	                     ->with($query->getCacheKey(), 5, m::type('Closure'))
+	                     ->andReturnUsing(function($key, $minutes, $callback) { return $callback(); });
+
+		$this->assertEquals($query->get(), array('results'));
+	}
+
 	protected function insertData()
 	{
 		$data = array(

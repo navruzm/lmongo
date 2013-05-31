@@ -37,6 +37,7 @@ class LMongoEloquentMorphTest extends PHPUnit_Framework_TestCase {
 		$builder = new LMongoMorphResetBuilderStub;
 		$parent = m::mock('LMongo\Eloquent\Model');
 		$parent->shouldReceive('getKey')->andReturn(1);
+		$parent->shouldReceive('isSoftDeleting')->andReturn(false);
 		$relation = new MorphOne($builder, $parent, 'morph_type', 'morph_id');
 		$relation->where('foo', 'bar');
 		$wheres = $relation->getAndResetWheres();
@@ -131,7 +132,8 @@ class LMongoMorphResetModelStub extends LMongo\Eloquent\Model {}
 
 class LMongoMorphResetBuilderStub extends LMongo\Eloquent\Builder {
 	public function __construct() { $this->query = new LMongoMorphQueryStub; }
-	public function getModel() {}
+	public function getModel() { return new LMongoMorphResetModelStub; }
+	public function isSoftDeleting() { return false; }
 }
 
 

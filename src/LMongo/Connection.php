@@ -2,6 +2,7 @@
 
 use Closure;
 use DateTime;
+use Illuminate\Cache\CacheManager;
 
 class Connection {
 
@@ -20,6 +21,13 @@ class Connection {
 	protected $paginator;
 
 	/**
+	 * The cache manager instance.
+	 *
+	 * @var \Illuminate\Cache\CacheManger
+	 */
+	protected $cache;
+
+	/**
      * The MongoDB database handler.
      *
      * @var resource
@@ -34,16 +42,25 @@ class Connection {
     protected $connection;
 
 	/**
+	 * The database connection configuration options.
+	 *
+	 * @var array
+	 */
+	protected $config = array();
+
+	/**
 	 * Establish a database connection.
 	 *
-	 * @param  array  $options
+	 * @param  array  $config
 	 * @return LMongo\Connection
 	 */
 	public function connect(array $config)
 	{
 		if ( ! is_null($this->connection)) return;
 
-		$options = array_get($config, 'options', array());
+		$this->config = $config;
+
+		$options = array_get($this->config, 'options', array());
 
       	$this->connection = new \MongoClient($this->getDsn($config), $options);
 
@@ -124,12 +141,59 @@ class Connection {
 	/**
 	 * Set the pagination environment instance.
 	 *
-	 * @param  Illuminate\Pagination\Environment|Closure  $paginator
+	 * @param  Illuminate\Pagination\Environment|\Closure  $paginator
 	 * @return void
 	 */
 	public function setPaginator($paginator)
 	{
 		$this->paginator = $paginator;
+	}
+
+	/**
+	 * Get the cache manager instance.
+	 *
+	 * @return \Illuminate\Cache\CacheManager
+	 */
+	public function getCacheManager()
+	{
+		if ($this->cache instanceof Closure)
+		{
+			$this->cache = call_user_func($this->cache);
+		}
+
+		return $this->cache;
+	}
+
+	/**
+	 * Set the cache manager instance on the connection.
+	 *
+	 * @param  \Illuminate\Cache\CacheManager|\Closure  $cache
+	 * @return void
+	 */
+	public function setCacheManager($cache)
+	{
+		$this->cache = $cache;
+	}
+
+	/**
+	 * Get the database connection name.
+	 *
+	 * @return string|null
+	 */
+	public function getName()
+	{
+		return $this->getConfig('name');
+	}
+
+	/**
+	 * Get an option from the configuration options.
+	 *
+	 * @param  string  $option
+	 * @return mixed
+	 */
+	public function getConfig($option)
+	{
+		return array_get($this->config, $option);
 	}
 
 	/**

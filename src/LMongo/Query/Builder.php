@@ -64,6 +64,20 @@ class Builder {
 	protected $first;
 
 	/**
+	 * The key that should be used when caching the query.
+	 *
+	 * @var string
+	 */
+	protected $cacheKey;
+
+	/**
+	 * The number of minutes to cache the query.
+	 *
+	 * @var int
+	 */
+	protected $cacheMinutes;
+
+	/**
 	 * Create a new query builder instance.
 	 *
 	 * @param  \LMongo\Connection $connection
@@ -1200,7 +1214,10 @@ class Builder {
 
 		call_user_func($callback, $query);
 
-		$this->wheres[] = compact('type', 'query', 'logic');
+		if (count($query->wheres))
+		{
+			$this->wheres[] = compact('type', 'query', 'logic');
+		}
 
 		return $this;
 	}
@@ -1353,6 +1370,19 @@ class Builder {
 	 */
 	public function get($columns = array())
 	{
+		if ( ! is_null($this->cacheMinutes)) return $this->getCached($columns);
+
+		return $this->getFresh($columns, true);
+	}
+
+	/**
+	 * Execute fresh query.
+	 *
+	 * @param  array  $columns
+	 * @return array
+	 */
+	public function getFresh($columns = array(), $cursor = false)
+	{
 		if (is_null($this->columns))
 		{
 			$this->columns = $columns;
@@ -1361,22 +1391,131 @@ class Builder {
 		$results = $this->connection->{$this->collection}
 							->find($this->compileWheres($this), $this->prepareColumns());
 
-		if(!is_null($this->orders))
+		if( ! is_null($this->orders))
 		{
 			$results = $results->sort($this->orders);
 		}
 
-		if(!is_null($this->offset))
+		if( ! is_null($this->offset))
 		{
 			$results = $results->skip($this->offset);
 		}
 
-		if(!is_null($this->limit))
+		if( ! is_null($this->limit))
 		{
 			$results = $results->limit($this->limit);
 		}
 
-		return new Cursor($results);
+		if($cursor)
+		{
+			return new Cursor($results);
+		}
+		else
+		{
+			return iterator_to_array($results);
+		}
+	}
+
+	/**
+	 * Execute cached query.
+	 *
+	 * @param  array  $columns
+	 * @return array
+	 */
+	public function getCached($columns = array())
+	{
+		list($key, $minutes) = $this->getCacheInfo();
+
+		// If the query is requested ot be cached, we will cache it using a unique key
+		// for this database connection and query statement, including the bindings
+		// that are used on this query, providing great convenience when caching.
+		$cache = $this->connection->getCacheManager();
+
+		$callback = $this->getCacheCallback($columns);
+
+		return $cache->remember($key, $minutes, $callback);
+	}
+
+	/**
+	 * Get the cache key and cache minutes as an array.
+	 *
+	 * @return array
+	 */
+	protected function getCacheInfo()
+	{
+		return array($this->getCacheKey(), $this->cacheMinutes);
+	}
+
+	/**
+	 * Get a unique cache key for the complete query.
+	 *
+	 * @return string
+	 */
+	public function getCacheKey()
+	{
+		return $this->cacheKey ?: $this->generateCacheKey();
+	}
+
+	/**
+	 * Generate the unique cache key for the query.
+	 *
+	 * @return string
+	 */
+	public function generateCacheKey()
+	{
+		$name = $this->connection->getName();
+
+		$key = array();
+		$key[] = serialize($this->compileWheres($this));
+
+		if (is_null($this->columns))
+		{
+			$key[] = serialize($this->columns);
+		}
+
+		if( ! is_null($this->orders))
+		{
+			$key[] = serialize($this->orders);
+		}
+
+		if( ! is_null($this->offset))
+		{
+			$key[] = 'skip'.$this->offset;
+		}
+
+		if( ! is_null($this->limit))
+		{
+			$key[] = 'limit'.$this->limit;
+		}
+
+		return md5($name . implode(',', $key));
+	}
+
+	/**
+	 * Get the Closure callback used when caching queries.
+	 *
+	 * @param  array  $columns
+	 * @return \Closure
+	 */
+	protected function getCacheCallback($columns)
+	{
+		$me = $this;
+
+		return function() use ($me, $columns) { return $me->getFresh($columns); };
+	}
+
+	/**
+	 * Indicate that the query results should be cached.
+	 *
+	 * @param  int  $minutes
+	 * @param  string  $key
+	 * @return \LMongo\Query\Builder
+	 */
+	public function remember($minutes, $key = null)
+	{
+		list($this->cacheMinutes, $this->cacheKey) = array($minutes, $key);
+
+		return $this;
 	}
 
 	/**
@@ -1701,11 +1840,17 @@ class Builder {
 	 *
 	 * @param  string  $column
 	 * @param  int     $amount
+	 * @param  array   $extra
 	 * @return int
 	 */
-	public function increment($column, $amount = 1)
+	public function increment($column, $amount = 1, array $extra = array())
 	{
 		$update = array('$inc' => array($column => $amount));
+
+		if(count($extra))
+		{
+			$update['$set'] = $extra;
+		}
 
 		$result = $this->connection->{$this->collection}->update($this->compileWheres($this), $update, array('multiple' => true));
 
@@ -1722,11 +1867,17 @@ class Builder {
 	 *
 	 * @param  string  $column
 	 * @param  int     $amount
+	 * @param  array   $extra
 	 * @return int
 	 */
-	public function decrement($column, $amount = 1)
+	public function decrement($column, $amount = 1, array $extra = array())
 	{
 		$update = array('$inc' => array($column => -$amount));
+
+		if(count($extra))
+		{
+			$update['$set'] = $extra;
+		}
 
 		$result = $this->connection->{$this->collection}->update($this->compileWheres($this), $update, array('multiple' => true));
 
@@ -1828,7 +1979,7 @@ class Builder {
 	{
 		$columns = array();
 
-		foreach ($this->columns as $column) 
+		foreach ($this->columns as $column)
 		{
 			$columns[$column] = 1;
 		}

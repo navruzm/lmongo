@@ -17,8 +17,8 @@ abstract class HasOneOrMany extends Relation {
 	/**
 	 * Create a new has many relationship instance.
 	 *
-	 * @param  LMongo\Eloquent\Builder  $query
-	 * @param  LMongo\Eloquent\Model  $parent
+	 * @param  \LMongo\Eloquent\Builder  $query
+	 * @param  \LMongo\Eloquent\Model  $parent
 	 * @param  string  $foreignKey
 	 * @return void
 	 */
@@ -63,7 +63,7 @@ abstract class HasOneOrMany extends Relation {
 	 * Match the eagerly loaded results to their single parents.
 	 *
 	 * @param  array   $models
-	 * @param  LMongo\Eloquent\Collection  $results
+	 * @param  \LMongo\Eloquent\Collection  $results
 	 * @param  string  $relation
 	 * @return array
 	 */
@@ -76,7 +76,7 @@ abstract class HasOneOrMany extends Relation {
 	 * Match the eagerly loaded results to their many parents.
 	 *
 	 * @param  array   $models
-	 * @param  LMongo\Eloquent\Collection  $results
+	 * @param  \LMongo\Eloquent\Collection  $results
 	 * @param  string  $relation
 	 * @return array
 	 */
@@ -89,7 +89,7 @@ abstract class HasOneOrMany extends Relation {
 	 * Match the eagerly loaded results to their many parents.
 	 *
 	 * @param  array   $models
-	 * @param  LMongo\Eloquent\Collection  $results
+	 * @param  \LMongo\Eloquent\Collection  $results
 	 * @param  string  $relation
 	 * @param  string  $type
 	 * @return array
@@ -133,7 +133,7 @@ abstract class HasOneOrMany extends Relation {
 	/**
 	 * Build model dictionary keyed by the relation's foreign key.
 	 *
-	 * @param  LMongo\Eloquent\Collection  $results
+	 * @param  \LMongo\Eloquent\Collection  $results
 	 * @return array
 	 */
 	protected function buildDictionary(Collection $results)
@@ -154,8 +154,8 @@ abstract class HasOneOrMany extends Relation {
 	/**
 	 * Attach a model instance to the parent model.
 	 *
-	 * @param  LMongo\Eloquent\Model  $model
-	 * @return LMongo\Eloquent\Model
+	 * @param  \LMongo\Eloquent\Model  $model
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function save(Model $model)
 	{
@@ -181,7 +181,7 @@ abstract class HasOneOrMany extends Relation {
 	 * Create a new instance of the related model.
 	 *
 	 * @param  array  $attributes
-	 * @return LMongo\Eloquent\Model
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function create(array $attributes)
 	{

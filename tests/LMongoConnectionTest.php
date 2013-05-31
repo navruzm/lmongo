@@ -1,6 +1,7 @@
 <?php
 
 use LMongo\Connection;
+use Mockery as m;
 
 class LMongoConnectionTest extends PHPUnit_Framework_TestCase {
 
@@ -48,6 +49,28 @@ class LMongoConnectionTest extends PHPUnit_Framework_TestCase {
 		$builder = $this->conn->collection('users');
 		$this->assertInstanceOf('LMongo\Query\Builder', $builder);
 		$this->assertEquals('users', $builder->collection);
+	}
+
+	public function testResolvingPaginatorThroughClosure()
+	{
+		$connection = $this->conn;
+		$paginator  = m::mock('Illuminate\Pagination\Environment');
+		$connection->setPaginator(function() use ($paginator)
+		{
+			return $paginator;
+		});
+		$this->assertEquals($paginator, $connection->getPaginator());
+	}
+
+	public function testResolvingCacheThroughClosure()
+	{
+		$connection = $this->conn;
+		$cache  = m::mock('Illuminate\Cache\CacheManager');
+		$connection->setCacheManager(function() use ($cache)
+		{
+			return $cache;
+		});
+		$this->assertEquals($cache, $connection->getCacheManager());
 	}
 
 	public function tearDown()

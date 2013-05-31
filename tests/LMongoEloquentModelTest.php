@@ -119,6 +119,26 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testUpdateProcessDoesntOverrideTimestamps()
+	{
+		$model = $this->getMock('LMongoModelStub', array('newQuery'));
+		$query = m::mock('LMongo\Eloquent\Builder');
+		$query->shouldReceive('where')->once()->with('_id', 'MongoID');
+		$query->shouldReceive('update')->once()->with(array('_id' => 1, 'created_at' => 'foo', 'updated_at' => 'bar'));
+		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
+		$model->setEventDispatcher($events = m::mock('Illuminate\Events\Dispatcher'));
+		$events->shouldReceive('until');
+		$events->shouldReceive('fire');
+
+		$model->syncOriginal();
+		$model->_id = 1;
+		$model->created_at = 'foo';
+		$model->updated_at = 'bar';
+		$model->exists = true;
+		$this->assertTrue($model->save());
+	}
+
+
 	public function testSaveIsCancelledIfSavingEventReturnsFalse()
 	{
 		$model = $this->getMock('LMongoModelStub', array('newQuery'));
@@ -173,8 +193,22 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 			'updated_at'	=> new MongoDate,
 		));
 
-		$this->assertInstanceOf('DateTime', $model->created_at);
-		$this->assertInstanceOf('DateTime', $model->updated_at);
+		$this->assertInstanceOf('Carbon\Carbon', $model->created_at);
+		$this->assertInstanceOf('Carbon\Carbon', $model->updated_at);
+	}
+
+
+	public function testTimestampsAreReturnedAsObjectsFromPlainDatesAndTimestamps()
+	{
+		$model = $this->getMock('LMongoDateModelStub', array('getDateFormat'));
+		$model->expects($this->any())->method('getDateFormat')->will($this->returnValue('Y-m-d H:i:s'));
+		$model->setRawAttributes(array(
+			'created_at'	=> '2012-12-04',
+			'updated_at'	=> time(),
+		));
+
+		$this->assertInstanceOf('Carbon\Carbon', $model->created_at);
+		$this->assertInstanceOf('Carbon\Carbon', $model->updated_at);
 	}
 
 
@@ -185,11 +219,11 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 			'updated_at' => new DateTime
 		);
 		$model = new LMongoDateModelStub;
-		LMongo\Eloquent\Model::setConnectionResolver($resolver = m::mock('LMongo\DatabaseManager'));
-		$resolver->shouldReceive('connection')->andReturn($mockConnection = m::mock('StdClass'));
+		LMongo\Eloquent\Model::setConnectionResolver($resolver = m::mock('LMongo\ConnectionResolverInterface'));
+		$resolver->shouldReceive('connection')->andReturn($mockConnection = m::mock('LMongo\Connection'));
 		$instance = $model->newInstance($timestamps);
-		$this->assertInstanceOf('DateTime', $instance->updated_at);
-		$this->assertInstanceOf('DateTime', $instance->created_at);
+		$this->assertInstanceOf('Carbon\Carbon', $instance->updated_at);
+		$this->assertInstanceOf('Carbon\Carbon', $instance->created_at);
 	}
 
 
@@ -200,12 +234,28 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 			'updated_at' => new DateTime
 		);
 		$model = new LMongoDateModelStub;
-		LMongo\Eloquent\Model::setConnectionResolver($resolver = m::mock('LMongo\DatabaseManager'));
-		$resolver->shouldReceive('connection')->andReturn($mockConnection = m::mock('StdClass'));
+		LMongo\Eloquent\Model::setConnectionResolver($resolver = m::mock('LMongo\ConnectionResolverInterface'));
+		$resolver->shouldReceive('connection')->andReturn($mockConnection = m::mock('LMongo\Connection'));
 		$instance = $model->newInstance($timestamps);
 
 		$instance->created_at = null;
 		$this->assertNull($instance->created_at);
+	}
+
+
+	public function testTimestampsAreCreatedFromStringsAndIntegers()
+	{
+		$model = new LMongoDateModelStub;
+		$model->created_at = '2013-05-22 00:00:00';
+		$this->assertInstanceOf('Carbon\Carbon', $model->created_at);
+
+		$model = new LMongoDateModelStub;
+		$model->created_at = time();
+		$this->assertInstanceOf('Carbon\Carbon', $model->created_at);
+
+		$model = new LMongoDateModelStub;
+		$model->created_at = '2012-01-01';
+		$this->assertInstanceOf('Carbon\Carbon', $model->created_at);
 	}
 
 
@@ -254,8 +304,34 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
 		$model->expects($this->once())->method('touchOwners');
 		$model->exists = true;
-		$model->id = 1;
+		$model->_id = 1;
 		$model->delete();
+	}
+
+
+	public function testDeleteProperlyDeletesModelWhenSoftDeleting()
+	{
+		$model = $this->getMock('LMongo\Eloquent\Model', array('newQuery', 'updateTimestamps', 'touchOwners'));
+		$model->setSoftDeleting(true);
+		$query = m::mock('stdClass');
+		$query->shouldReceive('where')->once()->with('_id', 'MongoID')->andReturn($query);
+		$query->shouldReceive('update')->once()->with(m::hasKey('deleted_at'));
+		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
+		$model->expects($this->once())->method('touchOwners');
+		$model->exists = true;
+		$model->_id = 1;
+		$model->delete();
+	}
+
+
+	public function testRestoreProperlyRestoresModel()
+	{
+		$model = $this->getMock('LMongo\Eloquent\Model', array('save'));
+		$model->setSoftDeleting(true);
+		$model->expects($this->once())->method('save');
+		$model->restore();
+
+		$this->assertNull($model->deleted_at);
 	}
 
 
@@ -318,6 +394,18 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('boom', $array['names'][1]['bam']);
 		$this->assertEquals('abby', $array['partner']['name']);
 		$this->assertFalse(isset($array['password']));
+	}
+
+
+	public function testVisibleCreatesArrayWhitelist()
+	{
+		$model = new LMongoModelStub;
+		$model->setVisible(array('name'));
+		$model->name = 'Taylor';
+		$model->age = 26;
+		$array = $model->toArray();
+
+		$this->assertEquals(array('name' => 'Taylor'), $array);
 	}
 
 
@@ -540,6 +628,35 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testCloneModelMakesAFreshCopyOfTheModel()
+	{
+		$class = new LMongoModelStub;
+		$class->_id = 1;
+		$class->exists = true;
+		$class->first = 'taylor';
+		$class->last = 'otwell';
+		$class->setRelation('foo', array('bar'));
+
+		$clone = $class->replicate();
+
+		$this->assertNull($clone->_id);
+		$this->assertFalse($clone->exists);
+		$this->assertEquals('taylor', $clone->first);
+		$this->assertEquals('otwell', $clone->last);
+		$this->assertEquals(array('bar'), $clone->foo);
+	}
+
+
+	public function testModelObserversCanBeAttachedToModels()
+	{
+		LMongoModelStub::setEventDispatcher($events = m::mock('Illuminate\Events\Dispatcher'));
+		$events->shouldReceive('listen')->once()->with('lmongo.creating: LMongoModelStub', 'LMongoTestObserverStub@creating');
+		$events->shouldReceive('listen')->once()->with('lmongo.saved: LMongoModelStub', 'LMongoTestObserverStub@saved');
+		$events->shouldReceive('forget');
+		LMongoModelStub::observe(new LMongoTestObserverStub);
+		LMongoModelStub::flushEventListeners();
+	}
+
 	protected function addMockConnection($model)
 	{
 		$resolver = m::mock('LMongo\DatabaseManager');
@@ -548,6 +665,11 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$model->setConnectionResolver($resolver);
 	}
 
+}
+
+class LMongoTestObserverStub {
+	public function creating() {}
+	public function saved() {}
 }
 
 class LMongoModelStub extends LMongo\Eloquent\Model {
@@ -581,6 +703,10 @@ class LMongoModelStub extends LMongo\Eloquent\Model {
 	{
 		return $this->belongsTo('LMongoModelSaveStub', 'foo');
 	}
+	public function getDates()
+	{
+		return array();
+	}
 }
 
 class LMongoModelCamelStub extends LMongoModelStub {
@@ -589,7 +715,10 @@ class LMongoModelCamelStub extends LMongoModelStub {
 
 
 class LMongoDateModelStub extends LMongoModelStub {
-	protected $dates = array('created_at', 'updated_at');
+	public function getDates()
+	{
+	  return array('created_at', 'updated_at');
+	}
 }
 
 class LMongoModelSaveStub extends LMongo\Eloquent\Model {
@@ -599,7 +728,7 @@ class LMongoModelSaveStub extends LMongo\Eloquent\Model {
 }
 
 class LMongoModelFindStub extends LMongo\Eloquent\Model {
-	public function newQuery()
+	public function newQuery($excludeDeleted = true)
 	{
 		$mock = m::mock('LMongo\Eloquent\Builder');
 		$mock->shouldReceive('find')->once()->with('51116e8bd38e182e63000000', array())->andReturn('foo');
@@ -608,7 +737,7 @@ class LMongoModelFindStub extends LMongo\Eloquent\Model {
 }
 
 class LMongoModelDestroyStub extends LMongo\Eloquent\Model {
-	public function newQuery()
+	public function newQuery($excludeDeleted = true)
 	{
 		$mock = m::mock('LMongo\Eloquent\Builder');
 		$mock->shouldReceive('whereIn')->once()->with('_id', array(new MongoID('51116e8bd38e182e63000000'), new MongoID('51116e8bd38e182e63000001')))->andReturn($mock);
@@ -619,7 +748,7 @@ class LMongoModelDestroyStub extends LMongo\Eloquent\Model {
 }
 
 class LMongoModelFindManyStub extends LMongo\Eloquent\Model {
-	public function newQuery()
+	public function newQuery($excludeDeleted = true)
 	{
 		$mock = m::mock('LMongo\Eloquent\Builder');
 		$mock->shouldReceive('whereIn')->once()->with('_id', array(new MongoID('51116e8bd38e182e63000000'), new MongoID('51116e8bd38e182e63000001')))->andReturn($mock);
@@ -629,7 +758,7 @@ class LMongoModelFindManyStub extends LMongo\Eloquent\Model {
 }
 
 class LMongoModelWithStub extends LMongo\Eloquent\Model {
-	public function newQuery()
+	public function newQuery($excludeDeleted = true)
 	{
 		$mock = m::mock('LMongo\Eloquent\Builder');
 		$mock->shouldReceive('with')->once()->with(array('foo', 'bar'))->andReturn('foo');

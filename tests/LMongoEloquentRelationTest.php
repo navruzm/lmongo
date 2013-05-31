@@ -33,7 +33,7 @@ class LMongoEloquentRelationTest extends PHPUnit_Framework_TestCase {
 		$builder->shouldReceive('getModel')->andReturn($related = m::mock('StdClass'));
 		$builder->shouldReceive('where');
 		$relation = new HasOne($builder, $parent, 'foreign_key');
-		$related->shouldReceive('getTable')->andReturn('table');
+		$related->shouldReceive('getCollection')->andReturn('collection');
 		$related->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
 		$builder->shouldReceive('update')->once()->with(array('updated_at' => new MongoDate));
 
@@ -42,10 +42,11 @@ class LMongoEloquentRelationTest extends PHPUnit_Framework_TestCase {
 
 }
 
+class LMongoRelationResetModelStub extends LMongo\Eloquent\Model {}
 
 class LMongoRelationResetStub extends LMongo\Eloquent\Builder {
 	public function __construct() { $this->query = new LMongoRelationQueryStub; }
-	public function getModel() {}
+	public function getModel() { return new LMongoRelationResetModelStub; }
 }
 
 

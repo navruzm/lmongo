@@ -72,6 +72,25 @@ class LMongoEloquentBuilderTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testWithDeletedProperlyRemovesDeletedClause()
+	{
+		$builder = new LMongo\Eloquent\Builder(new LMongo\Query\Builder(
+			m::mock('LMongo\Connection')
+		));
+		$model = m::mock('LMongo\Eloquent\Model');
+		$model->shouldReceive('getCollection')->once()->andReturn('');
+		$model->shouldReceive('getQualifiedDeletedAtColumn')->once()->andReturn('deleted_at');
+		$builder->setModel($model);
+
+		$builder->getQuery()->where('updated_at', null);
+		$builder->getQuery()->where('deleted_at', null);
+		$builder->getQuery()->where('foo_bar', null);
+
+		$builder->withTrashed();
+
+		$this->assertEquals(2, count($builder->getQuery()->wheres));
+	}
+
 	public function testPaginateMethod()
 	{
 		$builder = $this->getMock('LMongo\Eloquent\Builder', array('get'), $this->getMocks());

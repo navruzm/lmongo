@@ -15,15 +15,24 @@ class BelongsTo extends Relation {
 	protected $foreignKey;
 
 	/**
+	 * The name of the relationship.
+	 *
+	 * @var string
+	 */
+	protected $relation;
+
+	/**
 	 * Create a new has many relationship instance.
 	 *
-	 * @param  LMongo\Eloquent\Builder  $query
-	 * @param  LMongo\Eloquent\Model  $parent
+	 * @param  \LMongo\Eloquent\Builder  $query
+	 * @param  \LMongo\Eloquent\Model  $parent
 	 * @param  string  $foreignKey
+	 * @param  string  $relation
 	 * @return void
 	 */
-	public function __construct(Builder $query, Model $parent, $foreignKey)
+	public function __construct(Builder $query, Model $parent, $foreignKey, $relation)
 	{
+		$this->relation = $relation;
 		$this->foreignKey = $foreignKey;
 
 		parent::__construct($query, $parent);
@@ -130,7 +139,7 @@ class BelongsTo extends Relation {
 	 * Match the eagerly loaded results to their parents.
 	 *
 	 * @param  array   $models
-	 * @param  LMongo\Eloquent\Collection  $results
+	 * @param  \LMongo\Eloquent\Collection  $results
 	 * @param  string  $relation
 	 * @return array
 	 */
@@ -160,6 +169,19 @@ class BelongsTo extends Relation {
 		}
 
 		return $models;
+	}
+
+	/**
+	 * Associate the model instance to the given parent.
+	 *
+	 * @param  \LMongo\Eloquent\Model  $model
+	 * @return \LMongo\Eloquent\Model
+	 */
+	public function associate(Model $model)
+	{
+		$this->parent->setAttribute($this->foreignKey, $model->getKey());
+
+		return $this->parent->setRelation($this->relation, $model);
 	}
 
 	/**

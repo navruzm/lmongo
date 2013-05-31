@@ -35,7 +35,7 @@ class MorphMany extends MorphOneOrMany {
 	 * Match the eagerly loaded results to their parents.
 	 *
 	 * @param  array   $models
-	 * @param  LMongo\Eloquent\Collection  $results
+	 * @param  \LMongo\Eloquent\Collection  $results
 	 * @param  string  $relation
 	 * @return array
 	 */

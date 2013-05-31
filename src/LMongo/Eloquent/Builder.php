@@ -1,6 +1,8 @@
 <?php namespace LMongo\Eloquent;
 
 use Closure;
+use DateTime;
+use MongoDate;
 use MongoID;
 use LMongo\Query\Builder as QueryBuilder;
 
@@ -9,14 +11,14 @@ class Builder {
 	/**
 	 * The base query builder instance.
 	 *
-	 * @var LMongo\Eloquent\Builder
+	 * @var \LMongo\Eloquent\Builder
 	 */
 	protected $query;
 
 	/**
 	 * The model being queried.
 	 *
-	 * @var LMongo\Eloquent\Model
+	 * @var \LMongo\Eloquent\Model
 	 */
 	protected $model;
 
@@ -40,14 +42,14 @@ class Builder {
 	 * @var array
 	 */
 	protected $passthru = array(
-		'lists', 'insert', 'batchInsert', 'save', 'update', 'delete', 'increment',
-		'decrement', 'pluck', 'count', 'min', 'max', 'avg', 'sum',
+		'lists', 'insert', 'batchInsert', 'save', 'pluck',
+		'count', 'min', 'max', 'avg', 'sum', 'exists',
 	);
 
 	/**
 	 * Create a new model query builder instance.
 	 *
-	 * @param  LMongo\Query\Builder  $query
+	 * @param  \LMongo\Query\Builder  $query
 	 * @return void
 	 */
 	public function __construct(QueryBuilder $query)
@@ -60,7 +62,7 @@ class Builder {
 	 *
 	 * @param  mixed  $id
 	 * @param  array  $columns
-	 * @return LMongo\Eloquent\Model
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function find($id, $columns = array())
 	{
@@ -72,6 +74,20 @@ class Builder {
 		$this->query->where($this->model->getKeyName(), $id);
 
 		return $this->first($columns);
+	}
+
+	/**
+	 * Find a model by its primary key or throw an exception.
+	 *
+	 * @param  mixed  $id
+	 * @param  array  $columns
+	 * @return \Illuminate\Database\Eloquent\Model|Collection
+	 */
+	public function findOrFail($id, $columns = array())
+	{
+		if ( ! is_null($model = $this->find($id, $columns))) return $model;
+
+		throw new ModelNotFoundException;
 	}
 
 	/**
@@ -102,7 +118,7 @@ class Builder {
 	 * Execute the query as a "select" statement.
 	 *
 	 * @param  array  $columns
-	 * @return LMongo\Eloquent\Collection
+	 * @return \LMongo\Eloquent\Collection
 	 */
 	public function get($columns = array())
 	{
@@ -120,11 +136,24 @@ class Builder {
 	}
 
 	/**
+	 * Pluck a single column from the database.
+	 *
+	 * @param  string  $column
+	 * @return mixed
+	 */
+	public function pluck($column)
+	{
+		$result = $this->first(array($column));
+
+		if ($result) return $result->{$column};
+	}
+
+	/**
 	 * Get a paginator for the "select" statement.
 	 *
 	 * @param  int    $perPage
 	 * @param  array  $columns
-	 * @return Illuminate\Pagination\Paginator
+	 * @return \Illuminate\Pagination\Paginator
 	 */
 	public function paginate($perPage = null, $columns = array())
 	{
@@ -144,6 +173,156 @@ class Builder {
 		$all = $this->get($columns)->all();
 
 		return $paginator->make($all, $this->total, $perPage);
+	}
+
+	/**
+	 * Update a record in the database.
+	 *
+	 * @param  array  $values
+	 * @return int
+	 */
+	public function update(array $values)
+	{
+		return $this->query->update($this->addUpdatedAtColumn($values));
+	}
+
+	/**
+	 * Increment a column's value by a given amount.
+	 *
+	 * @param  string  $column
+	 * @param  int     $amount
+	 * @param  array   $extra
+	 * @return int
+	 */
+	public function increment($column, $amount = 1, array $extra = array())
+	{
+		$extra = $this->addUpdatedAtColumn($extra);
+
+		return $this->query->increment($column, $amount, $extra);
+	}
+
+	/**
+	 * Decrement a column's value by a given amount.
+	 *
+	 * @param  string  $column
+	 * @param  int     $amount
+	 * @param  array   $extra
+	 * @return int
+	 */
+	public function decrement($column, $amount = 1, array $extra = array())
+	{
+		$extra = $this->addUpdatedAtColumn($extra);
+
+		return $this->query->decrement($column, $amount, $extra);
+	}
+
+	/**
+	 * Add the "updated at" column to an array of values.
+	 *
+	 * @param  array  $values
+	 * @return array
+	 */
+	protected function addUpdatedAtColumn(array $values)
+	{
+		if ( ! $this->model->usesTimestamps()) return $values;
+
+		$column = $this->model->getUpdatedAtColumn();
+
+		return array_add($values, $column, new MongoDate);
+	}
+	/**
+	 * Delete a record from the database.
+	 *
+	 * @return int
+	 */
+	public function delete()
+	{
+		if ($this->model->isSoftDeleting())
+		{
+			$column = $this->model->getDeletedAtColumn();
+
+			return $this->query->update(array($column => new MongoDate));
+		}
+		else
+		{
+			return $this->query->delete();
+		}
+	}
+
+	/**
+	 * Force a delete on a set of soft deleted models.
+	 *
+	 * @return int
+	 */
+	public function forceDelete()
+	{
+		return $this->query->delete();
+	}
+
+	/**
+	 * Restore the soft-deleted model instances.
+	 *
+	 * @return int
+	 */
+	public function restore()
+	{
+		if ($this->model->isSoftDeleting())
+		{
+			$column = $this->model->getDeletedAtColumn();
+
+			return $this->query->update(array($column => null));
+		}
+	}
+
+	/**
+	 * Include the soft deleted models in the results.
+	 *
+	 * @return LMongo\Eloquent\Builder
+	 */
+	public function withTrashed()
+	{
+		$column = $this->model->getQualifiedDeletedAtColumn();
+
+		foreach ($this->query->wheres as $key => $where)
+		{
+			// If the where clause is a soft delete date constraint, we will remove it from
+			// the query and reset the keys on the wheres. This allows this developer to
+			// include deleted model in a relationship result set that is lazy loaded.
+			if ($this->isSoftDeleteConstraint($where, $column))
+			{
+				unset($this->query->wheres[$key]);
+
+				$this->query->wheres = array_values($this->query->wheres);
+			}
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Force the result set to only included soft deletes.
+	 *
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function onlyTrashed()
+	{
+		$this->withTrashed();
+
+		$this->query->whereNotNull($this->model->getQualifiedDeletedAtColumn());
+
+		return $this;
+	}
+
+	/**
+	 * Determine if the given where clause is a soft delete constraint.
+	 *
+	 * @param  array   $where
+	 * @param  string  $column
+	 * @return bool
+	 */
+	protected function isSoftDeleteConstraint(array $where, $column)
+	{
+		return $where['column'] == $column and is_null($where['value']);
 	}
 
 	/**
@@ -238,7 +417,7 @@ class Builder {
 	 * Get the relation instance for the given relation name.
 	 *
 	 * @param  string  $relation
-	 * @return LMongo\Eloquent\Relations\Relation
+	 * @return \LMongo\Eloquent\Relations\Relation
 	 */
 	public function getRelation($relation)
 	{
@@ -272,7 +451,7 @@ class Builder {
 		// that start with the given top relations and adds them to our arrays.
 		foreach ($this->eagerLoad as $name => $constraints)
 		{
-			if (str_contains($name, '.') and starts_with($name, $relation) and $name != $relation)
+			if ($this->isNested($name, $relation))
 			{
 				$nested[substr($name, strlen($relation.'.'))] = $constraints;
 			}
@@ -282,16 +461,32 @@ class Builder {
 	}
 
 	/**
+	 * Determine if the relationship is nested.
+	 *
+	 * @param  string  $name
+	 * @param  string  $relation
+	 * @return bool
+	 */
+	protected function isNested($name, $relation)
+	{
+		$dots = str_contains($name, '.');
+
+		return $dots and starts_with($name, $relation) and $name != $relation;
+	}
+
+	/**
 	 * Set the relationships that should be eager loaded.
 	 *
 	 * @param  dynamic  $relation
-	 * @return LMongo\Eloquent\Builder
+	 * @return \LMongo\Eloquent\Builder
 	 */
 	public function with($relations)
 	{
 		if (is_string($relations)) $relations = func_get_args();
 
-		$this->eagerLoad = $this->parseRelations($relations);
+		$eagers = $this->parseRelations($relations);
+
+		$this->eagerLoad = array_merge($this->eagerLoad, $eagers);
 
 		return $this;
 	}
@@ -321,7 +516,7 @@ class Builder {
 			// We need to separate out any nested includes. Which allows the developers
 			// to load deep relationships using "dots" without stating each level of
 			// the relationship with its own key in the array of eager load names.
-			$results = $this->parseNestedRelations($name, $results);
+			$results = $this->parseNested($name, $results);
 
 			$results[$name] = $constraints;
 		}
@@ -336,7 +531,7 @@ class Builder {
 	 * @param  array   $results
 	 * @return array
 	 */
-	protected function parseNestedRelations($name, $results)
+	protected function parseNested($name, $results)
 	{
 		$progress = array();
 
@@ -359,7 +554,7 @@ class Builder {
 	/**
 	 * Get the underlying query builder instance.
 	 *
-	 * @return LMongo\Query\Builder
+	 * @return \LMongo\Query\Builder
 	 */
 	public function getQuery()
 	{
@@ -369,7 +564,7 @@ class Builder {
 	/**
 	 * Set the underlying query builder instance.
 	 *
-	 * @param  LMongo\Query\Builder  $query
+	 * @param  \LMongo\Query\Builder  $query
 	 * @return void
 	 */
 	public function setQuery($query)
@@ -401,7 +596,7 @@ class Builder {
 	/**
 	 * Get the model instance being queried.
 	 *
-	 * @return LMongo\Eloquent\Model
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function getModel()
 	{
@@ -411,8 +606,8 @@ class Builder {
 	/**
 	 * Set a model instance for the model being queried.
 	 *
-	 * @param  LMongo\Eloquent\Model  $model
-	 * @return LMongo\Eloquent\Builder
+	 * @param  \LMongo\Eloquent\Model  $model
+	 * @return \LMongo\Eloquent\Builder
 	 */
 	public function setModel(Model $model)
 	{

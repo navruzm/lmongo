@@ -7,7 +7,7 @@ class DatabaseManager implements ConnectionResolverInterface {
 	/**
 	 * The application instance.
 	 *
-	 * @var Illuminate\Foundation\Application
+	 * @var \Illuminate\Foundation\Application
 	 */
 	protected $app;
 
@@ -28,7 +28,7 @@ class DatabaseManager implements ConnectionResolverInterface {
 	/**
 	 * Create a new database manager instance.
 	 *
-	 * @param  Illuminate\Foundation\Application  $app
+	 * @param  \Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
 	public function __construct($app)
@@ -40,7 +40,7 @@ class DatabaseManager implements ConnectionResolverInterface {
 	 * Get a database connection instance.
 	 *
 	 * @param  string  $name
-	 * @return Illuminate\Database\Connection
+	 * @return LMongo\Connection
 	 */
 	public function connection($name = null)
 	{
@@ -59,10 +59,23 @@ class DatabaseManager implements ConnectionResolverInterface {
 	}
 
 	/**
+	 * Reconnect to the given database.
+	 *
+	 * @param  string  $name
+	 * @return \LMongo\Connection
+	 */
+	public function reconnect($name = null)
+	{
+		unset($this->connections[$name]);
+
+		return $this->connection($name);
+	}
+
+	/**
 	 * Make the database connection instance.
 	 *
 	 * @param  string  $name
-	 * @return Illuminate\Database\Connection
+	 * @return \LMongo\Connection
 	 */
 	protected function makeConnection($name)
 	{
@@ -81,18 +94,29 @@ class DatabaseManager implements ConnectionResolverInterface {
 	/**
 	 * Prepare the database connection instance.
 	 *
-	 * @param  Illuminate\Database\Connection  $connection
-	 * @return Illuminate\Database\Connection
+	 * @param  \LMongo\Connection  $connection
+	 * @return \LMongo\Connection
 	 */
 	protected function prepare(Connection $connection)
 	{
-		$connection->setEventDispatcher($this->app['events']);
+		if ($this->app->bound('events'))
+		{
+			$connection->setEventDispatcher($this->app['events']);
+		}
+
+		// The database connection can also utilize a cache manager instance when cache
+		// functionality is used on queries, which provides an expressive interface
+		// to caching both fluent queries and Eloquent queries that are executed.
+		$app = $this->app;
+
+		$connection->setCacheManager(function() use ($app)
+		{
+			return $app['cache'];
+		});
 
 		// We will setup a Closure to resolve the paginator instance on the connection
 		// since the Paginator isn't sued on every request and needs quite a few of
 		// our dependencies. It'll be more efficient to lazily resolve instances.
-		$app = $this->app;
-
 		$connection->setPaginator(function() use ($app)
 		{
 			return $app['paginator'];
@@ -121,7 +145,7 @@ class DatabaseManager implements ConnectionResolverInterface {
 			throw new \InvalidArgumentException("MongoDB [$name] not configured.");
 		}
 
-		return $config;
+		return array_add($config, 'name', $name);
 	}
 
 	/**

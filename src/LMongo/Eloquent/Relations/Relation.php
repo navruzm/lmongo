@@ -10,29 +10,29 @@ abstract class Relation {
 	/**
 	 * The Eloquent query builder instance.
 	 *
-	 * @var LMongo\Eloquent\Builder
+	 * @var \LMongo\Eloquent\Builder
 	 */
 	protected $query;
 
 	/**
 	 * The parent model instance.
 	 *
-	 * @var LMongo\Eloquent\Model
+	 * @var \LMongo\Eloquent\Model
 	 */
 	protected $parent;
 
 	/**
 	 * The related model instance.
 	 *
-	 * @var LMongo\Eloquent\Model
+	 * @var \LMongo\Eloquent\Model
 	 */
 	protected $related;
 
 	/**
 	 * Create a new relation instance.
 	 *
-	 * @param  LMongo\Eloquent\Builder
-	 * @param  LMongo\Eloquent\Model
+	 * @param  \LMongo\Eloquent\Builder
+	 * @param  \LMongo\Eloquent\Model
 	 * @return void
 	 */
 	public function __construct(Builder $query, Model $parent)
@@ -72,7 +72,7 @@ abstract class Relation {
 	 * Match the eagerly loaded results to their parents.
 	 *
 	 * @param  array   $models
-	 * @param  LMongo\Eloquent\Collection  $results
+	 * @param  \LMongo\Eloquent\Collection  $results
 	 * @param  string  $relation
 	 * @return array
 	 */
@@ -98,6 +98,16 @@ abstract class Relation {
 	}
 
 	/**
+	 * Restore all of the soft deleted related models.
+	 *
+	 * @return int
+	 */
+	public function restore()
+	{
+		return $this->query->withTrashed()->restore();
+	}
+
+	/**
 	 * Run a raw update against the base query.
 	 *
 	 * @param  array  $attributes
@@ -117,7 +127,21 @@ abstract class Relation {
 	 */
 	public function getAndResetWheres()
 	{
-		$this->removeFirstWhereClause();
+		// When a model is "soft deleting", the "deleted at" where clause will be the
+		// first where clause on the relationship query, so we will actually clear
+		// the second where clause as that is the lazy loading relations clause.
+		if ($this->query->getModel()->isSoftDeleting())
+		{
+			$this->removeSecondWhereClause();
+		}
+
+		// When the model isn't soft deleting the where clause added by the lazy load
+		// relation query will be the first where clause on this query, so we will
+		// remove that to make room for the eager load constraints on the query.
+		else
+		{
+			$this->removeFirstWhereClause();
+		}
 
 		return $this->getBaseQuery()->getAndResetWheres();
 	}
@@ -127,9 +151,26 @@ abstract class Relation {
 	 *
 	 * @return void
 	 */
-	public function removeFirstWhereClause()
+	protected function removeFirstWhereClause()
 	{
 		array_shift($this->getBaseQuery()->wheres);
+	}
+
+	/**
+	 * Remove the second where clause from the relationship query.
+	 *
+	 * @return void
+	 */
+	protected function removeSecondWhereClause()
+	{
+		$wheres =& $this->getBaseQuery()->wheres;
+
+		// We'll grab the second where clause off of the set of wheres, and then reset
+		// the where clause keys so there are no gaps in the numeric keys. Then we
+		// remove the binding from the query so it doesn't mess things when run.
+		$second = $wheres[1]; unset($wheres[1]);
+
+		$wheres = array_values($wheres);
 	}
 
 	/**
@@ -150,7 +191,7 @@ abstract class Relation {
 	/**
 	 * Get the underlying query for the relation.
 	 *
-	 * @return LMongo\Eloquent\Builder
+	 * @return \LMongo\Eloquent\Builder
 	 */
 	public function getQuery()
 	{
@@ -160,7 +201,7 @@ abstract class Relation {
 	/**
 	 * Get the base query builder driving the Eloquent builder.
 	 *
-	 * @return LMongo\Query\Builder
+	 * @return \LMongo\Query\Builder
 	 */
 	public function getBaseQuery()
 	{
@@ -170,7 +211,7 @@ abstract class Relation {
 	/**
 	 * Get the parent model of the relation.
 	 *
-	 * @return LMongo\Eloquent\Model
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function getParent()
 	{
@@ -180,7 +221,7 @@ abstract class Relation {
 	/**
 	 * Get the related model of the relation.
 	 *
-	 * @return LMongo\Eloquent\Model
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function getRelated()
 	{

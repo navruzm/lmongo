@@ -24,8 +24,8 @@ class BelongsToMany extends HasOneOrMany {
 	/**
 	 * Create a new has many relationship instance.
 	 *
-	 * @param  LMongo\Eloquent\Builder  $query
-	 * @param  LMongo\Eloquent\Model  $parent
+	 * @param  \LMongo\Eloquent\Builder  $query
+	 * @param  \LMongo\Eloquent\Model  $parent
 	 * @param  string  $foreignKey
 	 * @param  string  $otherKey
 	 * @return void
@@ -69,7 +69,7 @@ class BelongsToMany extends HasOneOrMany {
 	 * Match the eagerly loaded results to their parents.
 	 *
 	 * @param  array   $models
-	 * @param  LMongo\Eloquent\Collection  $results
+	 * @param  \LMongo\Eloquent\Collection  $results
 	 * @param  string  $relation
 	 * @return array
 	 */
@@ -81,9 +81,8 @@ class BelongsToMany extends HasOneOrMany {
 	/**
 	 * Save a new model and attach it to the parent model.
 	 *
-	 * @param  LMongo\Eloquent\Model  $model
-	 * @param  array  $joining
-	 * @return LMongo\Eloquent\Model
+	 * @param  \LMongo\Eloquent\Model  $model
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function save(Model $model)
 	{
@@ -115,7 +114,7 @@ class BelongsToMany extends HasOneOrMany {
 	 *
 	 * @param  array  $attributes
 	 * @param  array  $joining
-	 * @return LMongo\Eloquent\Model
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function create(array $attributes)
 	{
@@ -135,7 +134,7 @@ class BelongsToMany extends HasOneOrMany {
 	 * Create an array of new instances of the related models.
 	 *
 	 * @param  array  $attributes
-	 * @return Illuminate\Database\Eloquent\Model
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function createMany(array $records)
 	{
@@ -274,7 +273,7 @@ class BelongsToMany extends HasOneOrMany {
 	/**
 	 * Build model dictionary keyed by the relation's foreign key.
 	 *
-	 * @param  LMongo\Eloquent\Collection  $results
+	 * @param  \LMongo\Eloquent\Collection  $results
 	 * @return array
 	 */
 	protected function buildDictionary(Collection $results)
