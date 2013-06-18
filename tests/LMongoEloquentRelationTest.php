@@ -35,6 +35,7 @@ class LMongoEloquentRelationTest extends PHPUnit_Framework_TestCase {
 		$relation = new HasOne($builder, $parent, 'foreign_key');
 		$related->shouldReceive('getCollection')->andReturn('collection');
 		$related->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
+		$related->shouldReceive('freshTimestamp')->andReturn(new MongoDate);
 		$builder->shouldReceive('update')->once()->with(array('updated_at' => new MongoDate));
 
 		$relation->touch();

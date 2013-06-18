@@ -413,7 +413,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	{
 		$model = new LMongoModelStub;
 		$model->name = 'Taylor';
-		$model->setRelation('foo', array('bar'));
+		$model->setRelation('foo', array('bar', 'list_items', 'password'));
 		$model->setHidden(array('foo'));
 		$array = $model->toArray();
 
@@ -492,6 +492,18 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$this->assertFalse(isset($model->age));
 		$this->assertEquals('bar', $model->foo);
 	}
+
+
+	public function testFillableOverridesGuarded()
+  	{
+	    $model = new LMongoModelStub;
+	    $model->guard(array('name', 'age'));
+	    $model->fillable(array('age', 'foo'));
+	    $model->fill(array('name' => 'foo', 'age' => 'bar', 'foo' => 'bar'));
+	    $this->assertFalse(isset($model->name));
+	    $this->assertEquals('bar', $model->age);
+	    $this->assertEquals('bar', $model->foo);
+ 	}
 
 
 	/**

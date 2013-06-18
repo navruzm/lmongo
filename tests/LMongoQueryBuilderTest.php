@@ -695,6 +695,21 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(2, $result[0]['count']);
 	}
 
+	public function testImplode()
+	{
+		$this->insertData();
+
+		// Test without glue.
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->where('name', 'Mustafa')->orWhere('name', 'Fatih')->implode('name');
+		$this->assertEquals('MustafaFatih', $result);
+
+		// Test with glue.
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->where('name', 'Mustafa')->orWhere('name', 'Fatih')->implode('name', ',');
+		$this->assertEquals('Mustafa,Fatih', $result);
+	}
+
 	public function testPaginateCorrectlyCreatesPaginatorInstance()
 	{
 		$connection = m::mock('LMongo\Connection');

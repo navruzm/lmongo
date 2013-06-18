@@ -29,6 +29,7 @@ class LMongoEloquentBelongsToManyTest extends PHPUnit_Framework_TestCase {
 		$relation = $this->getRelation();
 		$relation->getRelated()->shouldReceive('usesTimestamps')->once()->andReturn(true);
 		$relation->getRelated()->shouldReceive('freshTimestamp')->once()->andReturn(100);
+		$relation->getRelated()->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
 		$relation->getQuery()->shouldReceive('update')->once()->with(array('foo' => 'bar', 'updated_at' => 100))->andReturn('results');
 
 		$this->assertEquals('results', $relation->update(array('foo' => 'bar')));

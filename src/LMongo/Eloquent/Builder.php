@@ -62,7 +62,7 @@ class Builder {
 	 *
 	 * @param  mixed  $id
 	 * @param  array  $columns
-	 * @return \LMongo\Eloquent\Model
+	 * @return \LMongo\Eloquent\Model|null
 	 */
 	public function find($id, $columns = array())
 	{
@@ -81,7 +81,7 @@ class Builder {
 	 *
 	 * @param  mixed  $id
 	 * @param  array  $columns
-	 * @return \Illuminate\Database\Eloquent\Model|Collection
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function findOrFail($id, $columns = array())
 	{
@@ -93,8 +93,8 @@ class Builder {
 	/**
 	 * Execute the query and get the first result.
 	 *
-	 * @param  array   $columns
-	 * @return array
+	 * @param  array  $columns
+	 * @return \LMongo\Eloquent\Model|null
 	 */
 	public function first($columns = array())
 	{
@@ -104,8 +104,8 @@ class Builder {
 	/**
 	 * Execute the query and get the first result or throw an exception.
 	 *
-	 * @param  array   $columns
-	 * @return array
+	 * @param  array  $columns
+	 * @return \LMongo\Eloquent\Model
 	 */
 	public function firstOrFail($columns = array())
 	{
@@ -228,8 +228,9 @@ class Builder {
 
 		$column = $this->model->getUpdatedAtColumn();
 
-		return array_add($values, $column, new MongoDate);
+		return array_add($values, $column, $this->model->freshTimestamp());
 	}
+
 	/**
 	 * Delete a record from the database.
 	 *
@@ -239,14 +240,24 @@ class Builder {
 	{
 		if ($this->model->isSoftDeleting())
 		{
-			$column = $this->model->getDeletedAtColumn();
-
-			return $this->query->update(array($column => new MongoDate));
+			return $this->softDelete();
 		}
 		else
 		{
 			return $this->query->delete();
 		}
+	}
+
+	/**
+	 * Soft delete the record in the database.
+	 *
+	 * @return int
+	 */
+	protected function softDelete()
+	{
+		$column = $this->model->getDeletedAtColumn();
+
+		return $this->update(array($column => $this->model->freshTimestamp()));
 	}
 
 	/**
@@ -270,7 +281,7 @@ class Builder {
 		{
 			$column = $this->model->getDeletedAtColumn();
 
-			return $this->query->update(array($column => null));
+			return $this->update(array($column => null));
 		}
 	}
 

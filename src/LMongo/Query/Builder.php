@@ -1505,6 +1505,22 @@ class Builder {
 	}
 
 	/**
+	 * Concatenate values of a given column as a string.
+	 *
+	 * @param  string  $column
+	 * @param  string  $glue
+	 * @return string
+	 */
+	public function implode($column, $glue = null)
+	{
+		$values = $this->distinct($column);
+
+		if (is_null($glue)) return implode($values);
+
+		return implode($glue, $values);
+	}
+
+	/**
 	 * Indicate that the query results should be cached.
 	 *
 	 * @param  int  $minutes

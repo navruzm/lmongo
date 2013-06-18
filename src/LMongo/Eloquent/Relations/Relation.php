@@ -94,7 +94,7 @@ abstract class Relation {
 	{
 		$column = $this->getRelated()->getUpdatedAtColumn();
 
-		$this->rawUpdate(array($column => new MongoDate));
+		$this->rawUpdate(array($column => $this->getRelated()->freshTimestamp()));
 	}
 
 	/**
@@ -246,6 +246,16 @@ abstract class Relation {
 	public function updatedAt()
 	{
 		return $this->parent->getUpdatedAtColumn();
+	}
+
+	/**
+	 * Get the name of the related model's "updated at" column.
+	 *
+	 * @return string
+	 */
+	public function relatedUpdatedAt()
+	{
+		return $this->related->getUpdatedAtColumn();
 	}
 
 	/**
