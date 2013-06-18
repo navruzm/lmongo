@@ -22,7 +22,7 @@ class LMongoEloquentBuilderTest extends PHPUnit_Framework_TestCase {
 		$query->shouldReceive('collection')->once()->with('collection');
 		$builder->setModel($model);
 		$builder->expects($this->once())->method('first')->with($this->equalTo(array('column')))->will($this->returnValue('baz'));
-		$result = $builder->find('bar', array('column'));
+		$result = $builder->find('500000000000000000000000', array('column'));
 		$this->assertEquals('baz', $result);
 	}
 

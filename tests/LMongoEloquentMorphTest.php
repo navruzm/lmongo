@@ -36,7 +36,7 @@ class LMongoEloquentMorphTest extends PHPUnit_Framework_TestCase {
 	{
 		$builder = new LMongoMorphResetBuilderStub;
 		$parent = m::mock('LMongo\Eloquent\Model');
-		$parent->shouldReceive('getKey')->andReturn(1);
+		$parent->shouldReceive('getKey')->andReturn('500000000000000000000000');
 		$parent->shouldReceive('isSoftDeleting')->andReturn(false);
 		$relation = new MorphOne($builder, $parent, 'morph_type', 'morph_id');
 		$relation->where('foo', 'bar');
@@ -76,7 +76,7 @@ class LMongoEloquentMorphTest extends PHPUnit_Framework_TestCase {
 	{
 		$builder = new LMongoMorphResetBuilderStub;
 		$parent = m::mock('LMongo\Eloquent\Model');
-		$parent->shouldReceive('getKey')->andReturn(1);
+		$parent->shouldReceive('getKey')->andReturn('500000000000000000000000');
 		$relation = new MorphMany($builder, $parent, 'morph_type', 'morph_id');
 		$relation->where('foo', 'bar');
 		$wheres = $relation->getAndResetWheres();
@@ -119,7 +119,7 @@ class LMongoEloquentMorphTest extends PHPUnit_Framework_TestCase {
 		$related = m::mock('LMongo\Eloquent\Model');
 		$builder->shouldReceive('getModel')->andReturn($related);
 		$parent = m::mock('LMongo\Eloquent\Model');
-		$parent->shouldReceive('getKey')->andReturn(1);
+		$parent->shouldReceive('getKey')->andReturn('500000000000000000000000');
 		$builder->shouldReceive('where')->once()->with('morph_type', get_class($parent));
 		return new MorphMany($builder, $parent, 'morph_type', 'morph_id');
 	}

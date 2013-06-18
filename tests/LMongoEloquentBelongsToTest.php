@@ -63,11 +63,11 @@ class LMongoEloquentBelongsToTest extends PHPUnit_Framework_TestCase {
 	public function testAssociateMethodSetsForeignKeyOnModel()
 	{
 		$parent = m::mock('LMongo\Eloquent\Model');
-		$parent->shouldReceive('getAttribute')->once()->with('foreign_key')->andReturn('foreign.value');
+		$parent->shouldReceive('getAttribute')->once()->with('foreign_key')->andReturn('500000000000000000000000');
 		$relation = $this->getRelation($parent);
 		$associate = m::mock('LMongo\Eloquent\Model');
-		$associate->shouldReceive('getKey')->once()->andReturn(1);
-		$parent->shouldReceive('setAttribute')->once()->with('foreign_key', 1);
+		$associate->shouldReceive('getKey')->once()->andReturn('500000000000000000000000');
+		$parent->shouldReceive('setAttribute')->once()->with('foreign_key', '500000000000000000000000');
 		$parent->shouldReceive('setRelation')->once()->with('relation', $associate);
 
 		$relation->associate($associate);
@@ -84,38 +84,6 @@ class LMongoEloquentBelongsToTest extends PHPUnit_Framework_TestCase {
 		$parent = $parent ?: new LMongoBelongsToModelStub;
 		return new BelongsTo($builder, $parent, 'foreign_key', 'relation');
 	}
-
-
-	/*protected function getRelation()
-	{
-		$builder = m::mock('LMongo\Eloquent\Builder');
-		$builder->shouldReceive('where')->with('_id', 'MongoID');
-		$related = m::mock('LMongo\Eloquent\Model');
-		$related->shouldReceive('getKeyName')->andReturn('_id');
-		$builder->shouldReceive('getModel')->andReturn($related);
-		$parent = new LMongoBelongsToModelStub;
-		return new BelongsTo($builder, $parent, 'foreign_key');
-	}
-
-	public function testAssociateMethodSetsForeignKeyOnModel()
-	{
-		$related = $this->getMock('LMongo\Eloquent\Model', array('getCollection'));
-
-		$parent = $this->getMock('LMongo\Eloquent\Model', array('save', 'getAttribute', 'setAttribute', 'getCollection'));
-		$parent->expects($this->once())->method('getAttribute')->with($this->equalTo('owner_key'))->will($this->returnValue(new MongoID('51116e8bd38e182e63000000')));
-		$parent->expects($this->once())->method('setAttribute')->with($this->equalTo('owner_key'), $this->equalTo(new MongoID('51116e8bd38e182e63000001')));
-
-		$builder = m::mock('LMongo\Eloquent\Builder');
-		$builder->shouldReceive('getModel')->andReturn($related);
-		$builder->shouldReceive('where')->with("_id", 'MongoID');
-
-		$relation = new BelongsTo($builder, $parent, 'owner_key');
-
-		$newOwner = m::mock('LMongo\Eloquent\Model');
-		$newOwner->shouldReceive('getKey')->andReturn(new MongoID('51116e8bd38e182e63000001'));
-
-		$relation->associate($newOwner);
-	}*/
 
 }
 

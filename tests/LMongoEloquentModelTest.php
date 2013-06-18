@@ -100,7 +100,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$model = $this->getMock('LMongoModelStub', array('newQuery', 'updateTimestamps'));
 		$query = m::mock('LMongo\Eloquent\Builder');
 		$query->shouldReceive('where')->once()->with('_id', 'MongoID');
-		$query->shouldReceive('update')->once()->with(array('_id' => 1, 'name' => 'taylor'));
+		$query->shouldReceive('update')->once()->with(array('_id' => '500000000000000000000000', 'name' => 'taylor'));
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
 		$model->expects($this->once())->method('updateTimestamps');
 		$model->setEventDispatcher($events = m::mock('Illuminate\Events\Dispatcher'));
@@ -112,7 +112,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$model->foo = 'bar';
 		// make sure foo isn't synced so we can test that dirty attributes only are updated
 		$model->syncOriginal();
-		$model->_id = 1;
+		$model->_id = '500000000000000000000000';
 		$model->name = 'taylor';
 		$model->exists = true;
 		$this->assertTrue($model->save());
@@ -124,14 +124,14 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$model = $this->getMock('LMongoModelStub', array('newQuery'));
 		$query = m::mock('LMongo\Eloquent\Builder');
 		$query->shouldReceive('where')->once()->with('_id', 'MongoID');
-		$query->shouldReceive('update')->once()->with(array('_id' => 1, 'created_at' => 'foo', 'updated_at' => 'bar'));
+		$query->shouldReceive('update')->once()->with(array('_id' => '500000000000000000000000', 'created_at' => 'foo', 'updated_at' => 'bar'));
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
 		$model->setEventDispatcher($events = m::mock('Illuminate\Events\Dispatcher'));
 		$events->shouldReceive('until');
 		$events->shouldReceive('fire');
 
 		$model->syncOriginal();
-		$model->_id = 1;
+		$model->_id = '500000000000000000000000';
 		$model->created_at = 'foo';
 		$model->updated_at = 'bar';
 		$model->exists = true;
@@ -173,12 +173,12 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$model->timestamps = false;
 		$query = m::mock('LMongo\Eloquent\Builder');
 		$query->shouldReceive('where')->once()->with('_id', 'MongoID');
-		$query->shouldReceive('update')->once()->with(array('_id' => 1, 'name' => 'taylor'));
+		$query->shouldReceive('update')->once()->with(array('_id' => '500000000000000000000000', 'name' => 'taylor'));
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
 		$model->expects($this->never())->method('updateTimestamps');
 		$model->expects($this->any())->method('fireModelEvent')->will($this->returnValue(true));
 
-		$model->_id = 1;
+		$model->_id = '500000000000000000000000';
 		$model->name = 'taylor';
 		$model->exists = true;
 		$this->assertTrue($model->save());
@@ -304,7 +304,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
 		$model->expects($this->once())->method('touchOwners');
 		$model->exists = true;
-		$model->_id = 1;
+		$model->_id = '500000000000000000000000';
 		$model->delete();
 	}
 
@@ -319,7 +319,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$model->expects($this->once())->method('newQuery')->will($this->returnValue($query));
 		$model->expects($this->once())->method('touchOwners');
 		$model->exists = true;
-		$model->_id = 1;
+		$model->_id = '500000000000000000000000';
 		$model->delete();
 	}
 
@@ -520,11 +520,13 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	public function testHasOneCreatesProperRelation()
 	{
 		$model = new LMongoModelStub;
+		$model->_id = '500000000000000000000000';
 		$this->addMockConnection($model);
 		$relation = $model->hasOne('LMongoModelSaveStub');
 		$this->assertEquals('l_mongo_model_stub_id', $relation->getForeignKey());
 
 		$model = new LMongoModelStub;
+		$model->_id = '500000000000000000000000';
 		$this->addMockConnection($model);
 		$relation = $model->hasOne('LMongoModelSaveStub', 'foo');
 		$this->assertEquals('foo', $relation->getForeignKey());
@@ -536,6 +538,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	public function testMorphOneCreatesProperRelation()
 	{
 		$model = new LMongoModelStub;
+		$model->_id = '500000000000000000000000';
 		$this->addMockConnection($model);
 		$relation = $model->morphOne('LMongoModelSaveStub', 'morph');
 		$this->assertEquals('morph_id', $relation->getForeignKey());
@@ -547,11 +550,13 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	public function testHasManyCreatesProperRelation()
 	{
 		$model = new LMongoModelStub;
+		$model->_id = '500000000000000000000000';
 		$this->addMockConnection($model);
 		$relation = $model->hasMany('LMongoModelSaveStub');
 		$this->assertEquals('l_mongo_model_stub_id', $relation->getForeignKey());
 
 		$model = new LMongoModelStub;
+		$model->_id = '500000000000000000000000';
 		$this->addMockConnection($model);
 		$relation = $model->hasMany('LMongoModelSaveStub', 'foo');
 		$this->assertEquals('foo', $relation->getForeignKey());
@@ -563,6 +568,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	public function testMorphManyCreatesProperRelation()
 	{
 		$model = new LMongoModelStub;
+		$model->_id = '500000000000000000000000';
 		$this->addMockConnection($model);
 		$relation = $model->morphMany('LMongoModelSaveStub', 'morph');
 		$this->assertEquals('morph_id', $relation->getForeignKey());
@@ -574,6 +580,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	public function testBelongsToCreatesProperRelation()
 	{
 		$model = new LMongoModelStub;
+		$model->belongs_to_stub_id = '500000000000000000000000';
 		$this->addMockConnection($model);
 		$relation = $model->belongsToStub();
 		$this->assertEquals('belongs_to_stub_id', $relation->getForeignKey());
@@ -581,6 +588,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($relation->getQuery()->getModel() instanceof LMongoModelSaveStub);
 
 		$model = new LMongoModelStub;
+		$model->foo = '500000000000000000000000';
 		$this->addMockConnection($model);
 		$relation = $model->belongsToExplicitKeyStub();
 		$this->assertEquals('foo', $relation->getForeignKey());
@@ -604,6 +612,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 	public function testBelongsToManyCreatesProperRelation()
 	{
 		$model = new LMongoModelStub;
+		$model->_id = '500000000000000000000000';
 		$this->addMockConnection($model);
 		$relation = $model->belongsToMany('LMongoModelSaveStub');
 		$this->assertEquals('l_mongo_model_stub_id', $relation->getForeignKey());
@@ -612,6 +621,7 @@ class LMongoEloquentModelTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($relation->getQuery()->getModel() instanceof LMongoModelSaveStub);
 
 		$model = new LMongoModelStub;
+		$model->_id = '500000000000000000000000';
 		$this->addMockConnection($model);
 		$relation = $model->belongsToMany('LMongoModelSaveStub', 'foreign', 'other');
 		$this->assertEquals('foreign', $relation->getForeignKey());
