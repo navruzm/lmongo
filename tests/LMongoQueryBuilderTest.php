@@ -629,6 +629,42 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(2, $result);
 	}
 
+	public function testSetFieldMethod()
+	{
+		$this->insertData();
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->where('name', 'Mustafa')->setField('no', 4);
+		$this->assertEquals(1, $result);
+
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->where('no', 4)->setField(array('no' => 5));
+		$this->assertEquals(2, $result);
+	}
+
+	public function testUnsetFieldMethod()
+	{
+		$this->insertData();
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->where('name', 'Mustafa')->unsetField('no');
+		$this->assertEquals(1, $result);
+
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->whereExists('no')->unsetField(array('no','name'));
+		$this->assertEquals(3, $result);
+	}
+
+	public function testRenameFieldMethod()
+	{
+		$this->insertData();
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->where('name', 'Mustafa')->renameField('no', 'id');
+		$this->assertEquals(1, $result);
+
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->whereExists('id')->renameField(array('id' => 'no'));
+		$this->assertEquals(1, $result);
+	}
+
 	public function testIncrementAndDecrementMethods()
 	{
 		$this->insertData();

@@ -1832,6 +1832,24 @@ class Builder {
 	}
 
 	/**
+	 * Perform update.
+	 *
+	 * @param  array  $query
+	 * @return int
+	 */
+	protected function performUpdate(array $query)
+	{
+		$result = $this->connection->{$this->collection}->update($this->compileWheres($this), $query, array('multiple' => true));
+
+		if(1 == (int) $result['ok'])
+		{
+			return $result['n'];
+		}
+
+		return 0;
+	}
+
+	/**
 	 * Update a document in the database.
 	 *
 	 * @param  array  $data
@@ -1841,14 +1859,69 @@ class Builder {
 	{
 		$update = array('$set' => $data);
 
-		$result = $this->connection->{$this->collection}->update($this->compileWheres($this), $update, array('multiple' => true));
+		return $this->performUpdate($update);
+	}
 
-		if(1 == (int) $result['ok'])
+	/**
+	 * Set the values for the keys.
+	 *
+	 * @param  mixed  $column
+	 * @param  mixed  $value
+	 * @return int
+	 */
+	public function setField($column, $value = null)
+	{
+		if(is_array($column))
 		{
-			return $result['n'];
+			$update = array('$set' => $column);
+		}
+		else
+		{
+			$update = array('$set' => array($column => $value));
 		}
 
-		return 0;
+		return $this->performUpdate($update);
+	}
+
+	/**
+	 * Unset or remove the given keys.
+	 *
+	 * @param  mixed  $column
+	 * @return int
+	 */
+	public function unsetField($column)
+	{
+		$columns = array();
+
+		foreach ((array) $column as $key)
+		{
+			$columns[$key] = true;
+		}
+
+		$update = array('$unset' => $columns);
+
+		return $this->performUpdate($update);
+	}
+
+	/**
+	 * Renames a field.
+	 *
+	 * @param  mixed  $old
+	 * @param  mixed  $new
+	 * @return int
+	 */
+	public function renameField($old, $new = null)
+	{
+		if(is_array($old))
+		{
+			$update = array('$rename' => $old);
+		}
+		else
+		{
+			$update = array('$rename' => array($old => $new));
+		}
+
+		return $this->performUpdate($update);
 	}
 
 	/**
@@ -1868,14 +1941,7 @@ class Builder {
 			$update['$set'] = $extra;
 		}
 
-		$result = $this->connection->{$this->collection}->update($this->compileWheres($this), $update, array('multiple' => true));
-
-		if(1 == (int) $result['ok'])
-		{
-			return $result['n'];
-		}
-
-		return 0;
+		return $this->performUpdate($update);
 	}
 
 	/**
@@ -1895,14 +1961,7 @@ class Builder {
 			$update['$set'] = $extra;
 		}
 
-		$result = $this->connection->{$this->collection}->update($this->compileWheres($this), $update, array('multiple' => true));
-
-		if(1 == (int) $result['ok'])
-		{
-			return $result['n'];
-		}
-
-		return 0;
+		return $this->performUpdate($update);
 	}
 
 	/**
