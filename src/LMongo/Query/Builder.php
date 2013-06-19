@@ -1965,6 +1965,118 @@ class Builder {
 	}
 
 	/**
+	 * Append one value to the array key.
+	 *
+	 * @param  string  $column
+	 * @param  mixed   $value
+	 * @return int
+	 */
+	public function push($column, $value = null)
+	{
+		if(is_array($column))
+		{
+			$update = array('$push' => $column);
+		}
+		else
+		{
+			$update = array('$push' => array($column => $value));
+		}
+
+		return $this->performUpdate($update);
+	}
+
+	/**
+	 * Append several value to the array key.
+	 *
+	 * @param  string  $column
+	 * @param  mixed   $values
+	 * @return int
+	 */
+	public function pushAll($column, array $values)
+	{
+		$update = array('$push' => array($column => array('$each' => $values)));
+
+		return $this->performUpdate($update);
+	}
+
+	/**
+	 * Append one unique value to the array key.
+	 *
+	 * @param  string  $column
+	 * @param  mixed   $value
+	 * @return int
+	 */
+	public function addToSet($column, $value = null)
+	{
+		if(is_array($column))
+		{
+			$update = array('$addToSet' => $column);
+		}
+		else
+		{
+			$update = array('$addToSet' => array($column => $value));
+		}
+
+		return $this->performUpdate($update);
+	}
+
+	/**
+	 * Remove one value from the array key.
+	 *
+	 * @param  string  $column
+	 * @param  mixed   $value
+	 * @return int
+	 */
+	public function pull($column, $value = null)
+	{
+		if(is_array($column))
+		{
+			$update = array('$pull' => $column);
+		}
+		else
+		{
+			$update = array('$pull' => array($column => $value));
+		}
+
+		return $this->performUpdate($update);
+	}
+
+	/**
+	 * Remove several value from the array key.
+	 *
+	 * @param  string  $column
+	 * @param  mixed   $value
+	 * @return int
+	 */
+	public function pullAll($column, $value = null)
+	{
+		if(is_array($column))
+		{
+			$update = array('$pullAll' => $column);
+		}
+		else
+		{
+			$update = array('$pullAll' => array($column => $value));
+		}
+
+		return $this->performUpdate($update);
+	}
+
+	/**
+	 * Remove the last element from the array key.
+	 *
+	 * @param  string  $column
+	 * @param  int     $type
+	 * @return int
+	 */
+	public function pop($column, $type = 1)
+	{
+		$update = array('$pop' => array($column => $type));
+
+		return $this->performUpdate($update);
+	}
+
+	/**
 	 * Delete a document from the database.
 	 *
 	 * @return int

@@ -701,6 +701,82 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(1, $result);
 	}
 
+	public function testPushMethod()
+	{
+		$this->insertData();
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->where('no', 1)->push('tag', 'css');
+		$this->assertEquals(1, $result);
+
+		$result = $builder->collection('test')->where('no', 1)->pluck('tag');
+		$this->assertEquals(array('php','html','css'), $result);
+	}
+
+	public function testPushAllMethod()
+	{
+		$this->insertData();
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->where('no', 1)->pushAll('tag', array('css','mongodb'));
+		$this->assertEquals(1, $result);
+
+		$result = $builder->collection('test')->where('no', 1)->pluck('tag');
+		$this->assertEquals(array('php','html','css','mongodb'), $result);
+	}
+
+	public function testaddToSetMethod()
+	{
+		$this->insertData();
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->where('no', 1)->addToSet('tag', 'css');
+		$this->assertEquals(1, $result);
+
+		$result = $builder->collection('test')->where('no', 1)->pluck('tag');
+		$this->assertEquals(array('php','html','css'), $result);
+
+		$builder->collection('test')->where('no', 1)->addToSet('tag', 'php');
+		$result = $builder->collection('test')->where('no', 1)->pluck('tag');
+		$this->assertEquals(array('php','html','css'), $result);
+	}
+
+	public function testPullMethod()
+	{
+		$this->insertData();
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->where('no', 1)->pull('tag', 'php');
+		$this->assertEquals(1, $result);
+
+		$result = $builder->collection('test')->where('no', 1)->pluck('tag');
+		$this->assertEquals(array('html'), $result);
+	}
+
+	public function testPullAllMethod()
+	{
+		$this->insertData();
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->where('no', 1)->pullAll('tag', array('php','html'));
+		$this->assertEquals(1, $result);
+
+		$result = $builder->collection('test')->where('no', 1)->pluck('tag');
+		$this->assertEquals(array(), $result);
+	}
+
+	public function testPopMethod()
+	{
+		$this->insertData();
+		$builder = $this->getBuilder();
+		$result = $builder->collection('test')->where('no', 1)->pop('tag');
+		$this->assertEquals(1, $result);
+
+		$result = $builder->collection('test')->where('no', 1)->pluck('tag');
+		$this->assertEquals(array('php'), $result);
+
+		$builder->collection('test')->where('no', 1)->pushAll('tag', array('css','mongodb'));
+		$builder->collection('test')->where('no', 1)->pop('tag', -1);
+		$result = $builder->collection('test')->where('no', 1)->pluck('tag');
+		$this->assertEquals(array('css','mongodb'), $result);
+	}
+
+
 	public function testDeleteMethod()
 	{
 		$this->insertData();
@@ -787,6 +863,7 @@ class LMongoQueryBuilderTest extends PHPUnit_Framework_TestCase {
 			array(
 				'name' => 'Mustafa',
 				'no' => 1,
+				'tag' => array('php', 'html')
 			),
 			array(
 				'name' => 'Fatih',
