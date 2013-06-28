@@ -1925,10 +1925,16 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
 	{
 		$format = $this->getDateFormat();
 
+		// If the value is already a MongoDate instance just return the MongoDate
+		if ($value instanceof MongoDate)
+		{
+			return $value;
+		}
+
 		// If the value is already a DateTime instance, we will just skip the rest of
 		// these checks since they will be a waste of time, and hinder performance
 		// when checking the field. We will just return the DateTime right away.
-		if ($value instanceof DateTime)
+		elseif ($value instanceof DateTime)
 		{
 			//
 		}
