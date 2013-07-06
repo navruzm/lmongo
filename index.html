@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>LMongo - MongoDB package for Laravel 4</title>
+  <meta name="description" content="LMongo is MongoDB package for Laravel 4">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+  <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+  <script src="http://yandex.st/highlightjs/7.3/highlight.min.js"></script>
+  <script>
+  hljs.initHighlightingOnLoad();
+  </script>
+  <link href="http://yandex.st/highlightjs/7.3/styles/github.min.css" rel="stylesheet">
+  <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+  <link href="docs.css" rel="stylesheet">
+</head>
+<body>
+  <header class="navbar navbar-fixed-top" id="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="dropdown pull-left">
+          <a class="brand dropdown-toggle" role="button" data-toggle="dropdown" href="#">
+            LMongo
+          </a>
+        </div>
+        <div class="nav-collapse">
+          <ul class="nav">
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#basic-usage">Basic Usage</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Query Builder <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="#wheres">Wheres</a></li>
+                <li><a href="#advanced-wheres">Advanced Wheres</a></li>
+                <li><a href="#aggregates">Aggregates</a></li>
+                <li><a href="#inserts">Inserts</a></li>
+                <li><a href="#updates">Updates</a></li>
+                <li><a href="#deletes">Deletes</a></li>
+                <li><a href="#pagination">Pagination</a></li>
+              </ul>
+            </li>
+            <li><a href="#eloquent">Eloquent for MongoDB</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div role="main">
+
+    <div class="container">
+
+      <div class="hero-unit" id="introduction">
+        <p>
+          LMongo is <a href="http://www.mongodb.org/">MongoDB</a> package for <a href="http://laravel.com/">Laravel 4</a>.
+        </p>
+        <p>
+          <ul class="inline social-buttons clearfix">
+            <li>
+              <a class="btn btn-primary" href="https://github.com/navruzm/lmongo">Learn more on GitHub&raquo;</a>
+            </li>
+            <li>
+              <iframe src="http://ghbtns.com/github-btn.html?user=navruzm&repo=lmongo&type=watch&count=true&size=large"
+              allowtransparency="true" frameborder="0" scrolling="0" width="150" height="30" style="vertical-align: middle"></iframe>
+            </li>
+            <li>
+              <iframe src="http://ghbtns.com/github-btn.html?user=navruzm&repo=lmongo&type=fork&count=true&size=large"
+              allowtransparency="true" frameborder="0" scrolling="0" width="150" height="30" style="vertical-align: middle"></iframe>
+            </li>
+
+            <li>
+              <div class="g-plusone" data-size="normal"></div>
+            </li>
+            <li>
+              <a href="https://twitter.com/share" class="twitter-share-button" data-hashtags="lmongo" data-size="large">Tweet</a>
+            </li>
+          </ul>
+        </p>
+      </div>
+      <section id="installation">
+        <div class="page-header">
+          <h1>Installation</h1>
+        </div>
+        <p>
+        Add <code>navruzm/lmongo</code> as a requirement to composer.json:
+        </p>
+
+<pre><code class="json">{
+  "require": {
+      "navruzm/lmongo": "*"
+  }
+}
+</code></pre>
+
+        <p>And then run <code>composer update</code></p>
+
+        <p>
+          Once Composer has installed or updated your packages you need to register LMongo. Open up <code>app/config/app.php</code> and find the <code>providers</code> key and add:
+        </p>
+
+<pre><code class="php">'LMongo\LMongoServiceProvider'</code></pre>
+
+        <p>Then find the <code>aliases</code> key and add following line to the array:</p>
+
+<pre><code class="php">'LMongo'          => 'LMongo\Facades\LMongo',
+'EloquentMongo'   => 'LMongo\Eloquent\Model',
+</code></pre>
+
+        <p>Finally you need to publish a configuration file by running the following Artisan command.</p>
+
+<pre><code>$ php artisan config:publish navruzm/lmongo</code></pre>
+
+        <p>This will copy the default configuration file to app/config/packages/navruzm/lmongo/config.php</p>
+
+      </section>
+
+
+      <section id="basic-usage">
+        <div class="page-header">
+          <h1>Basic Usage</h1>
+        </div>
+
+        <p>You may get a MongoDB instance by calling the <code>LMongo::connection</code> method:</p>
+
+<pre><code class="php">$LMongo = LMongo::connection();</code></pre>
+
+        <p>
+          This will give you an instance of the default MongoDB server. You may pass the server name to the <code>connection</code> method to get a specific server as defined in your mongodb configuration:
+        </p>
+<pre><code class="php">$LMongo = LMongo::connection('othermongodbserver');</code></pre>
+
+        <p>LMongo uses magic method to pass the collection name to the Database class and return MongoCollection instance. Then you can use any of <a href="http://php.net/manual/en/class.mongocollection.php">MongoCollection methods</a>:</p>
+
+<pre><code class="php">$item = $LMongo->collection_name->findOne(array('key' => 'value'));
+
+$items = $LMongo->collection_name->find(array('key' => 'value'))->limit(5);
+
+$LMongo->collection_name->remove(array('key' => 'value'));
+</code></pre>
+
+        <p>Get the <a href="http://php.net/manual/en/class.mongodb.php">MongoDB</a> object:</p>
+
+<pre><code class="php">$mongodb = $LMongo->getMongoDB();
+
+$collection_names = $mongodb->getCollectionNames();
+</code></pre>
+
+        <p>Get the <a href="http://php.net/manual/en/class.mongoclient.php">MongoClient</a> object:</p>
+
+<pre><code class="php">$mongo = $LMongo->getMongoClient();
+
+$databases = $mongo->listDBs();
+</code></pre>
+
+      </section>
+
+      <section id="wheres">
+        <div class="page-header">
+          <h1>Query Builder</h1>
+
+          <h2>Wheres</h2>
+        </div>
+
+        <p><strong>Retrieving All Rows From A Collection</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')->get();
+
+foreach ($users as $user)
+{
+  var_dump($user['name']);
+}
+</code></pre>
+
+        <p><strong>Retrieving A Single Document From A Collection</strong></p>
+
+<pre><code class="php">$user = LMongo::collection('users')->where('name', 'John')->first();
+
+var_dump($user['name']);
+</code></pre>
+
+        <p><strong>Retrieving A Single Column From A Document</strong></p>
+
+<pre><code class="php">$name = LMongo::collection('users')->where('name', 'John')->pluck('name');</code></pre>
+
+        <p><strong>Specifying A Fields</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')->get(array('name', 'email'));</code></pre>
+
+        <p><strong>Using Where Operators</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')->where('votes', 100)->get();</code></pre>
+
+        <p><strong>Or Statements</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->where('votes', 100)
+              ->orWhere('name', 'John')
+              ->get();
+</code></pre>
+
+        <p><strong>Nor Statements</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->where('votes', 100)
+              ->norWhere('name', 'John')
+              ->get();
+</code></pre>
+
+        <p><strong>Using Where In And Where Not In With An Array</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->whereIn('id', array(1, 2, 3))->get();
+</code></pre>
+
+        <p><strong>Using Where All With An Array</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->whereAll('tags', array('php','mongodb'))->get();
+
+$users = LMongo::collection('users')
+              ->whereNin('id', array(1, 2, 3))->get();
+</code></pre>
+
+        <p><strong>Using Where Exists</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->whereExists('updated_at')->get();
+</code></pre>
+
+        <p><strong>Using Where Gt</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->whereGt('votes', 1)->get();
+</code></pre>
+
+        <p><strong>Using Where Gte</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->whereGte('votes', 1)->get();
+</code></pre>
+
+        <p><strong>Using Where Lt</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->whereLt('votes', 1)->get();
+</code></pre>
+
+        <p><strong>Using Where Lte</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->whereLte('votes', 1)->get();
+</code></pre>
+
+        <p><strong>Using Where Between</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->whereBetween('votes', 1, 100)->get();
+</code></pre>
+
+        <p><strong>Using Where Ne</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->whereNe('name', 'John')->get();
+</code></pre>
+
+        <p><strong>Using Where Regex</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->whereRegex('name', '/John/i')->get();
+//or
+$users = LMongo::collection('users')
+              ->whereRegex('name', new MongoRegex('/John/im'))->get();
+</code></pre>
+
+        <p><strong>Using Where Like</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->whereLike('name', 'John','im')->get();
+</code></pre>
+
+        <p>There are more where methods in <a href="https://github.com/navruzm/lmongo/blob/master/src/LMongo/Query/Builder.php">Query/Builder.php</a> file.</p>
+
+        <p><strong>Order By</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')
+              ->orderBy('name', 'desc')
+              ->get();
+
+$users = LMongo::collection('users')
+              ->orderBy('name', -1)
+              ->get();
+</code></pre>
+
+        <p><strong>Offset & Limit</strong></p>
+
+<pre><code class="php">$users = LMongo::collection('users')->skip(10)->take(5)->get();</code></pre>
+
+      </section>
+
+
+      <section id="advanced-wheres">
+        <div class="page-header">
+          <h2>Advanced Wheres</h2>
+        </div>
+
+        <p><strong>Parameter Grouping</strong></p>
+<pre><code class="php">LMongo::collection('users')
+          ->where('name', 'John')
+          ->orWhere(function($query)
+          {
+              $query->whereGt('votes', 100)
+                    ->whereNe('title', 'Admin');
+          })
+          ->get();
+</code></pre>
+
+      </section>
+
+      <section id="aggregates">
+        <div class="page-header">
+          <h2>Aggregates</h2>
+        </div>
+<pre><code class="php">$users = LMongo::collection('users')->count();
+
+$price = LMongo::collection('orders')->max('price');
+
+$price = LMongo::collection('orders')->min('price');
+
+$price = LMongo::collection('orders')->avg('price');
+
+$total = LMongo::collection('users')->sum('votes');
+</code></pre>
+      </section>
+
+
+      <section id="distinct">
+        <div class="page-header">
+          <h2>Distinct</h2>
+        </div>
+
+<pre><code class="php">$emails = LMongo::collection('users')->distinct('email');</code></pre>
+
+      </section>
+
+      <section id="inserts">
+        <div class="page-header">
+          <h2>Inserts</h2>
+        </div>
+
+        <p><strong>Inserting Document Into A Collection</strong></p>
+
+<pre><code class="php">$id = LMongo::collection('users')->insert(
+  array('email' => 'john@example.com', 'votes' => 0),
+);
+</code></pre>
+
+        <p><strong>Inserting Multiple Documents Into A Collection</strong></p>
+
+<pre><code class="php">$ids = LMongo::collection('users')->batchInsert(
+          array('email' => 'john@example.com', 'votes' => 0),
+          array('email' => 'henry@example.com', 'votes' => 0),
+      );
+</code></pre>
+
+      </section>
+
+      <section id="updates">
+        <div class="page-header">
+          <h2>Updates</h2>
+        </div>
+        <p><strong>Updating Documents In A Collection</strong></p>
+
+<pre><code class="php">LMongo::collection('users')
+          ->where('id', 1)
+          ->update(array('votes' => 1));
+</code></pre>
+
+        <p><strong>Incrementing or decrementing a value of a column</strong></p>
+
+<pre><code class="php">LMongo::collection('users')->increment('votes');
+
+LMongo::collection('users')->decrement('votes');
+</code></pre>
+      </section>
+
+      <section id="deletes">
+        <div class="page-header">
+          <h2>Deletes</h2>
+        </div>
+
+        <p><strong>Deleting Documents In A Collection</strong></p>
+
+<pre><code class="php">LMongo::collection('users')->where('votes', 100)->delete();
+//or
+LMongo::collection('users')->where('votes', 100)->remove();
+</code></pre>
+
+        <p><strong>Deleting All Documents From A Collection</strong></p>
+
+<pre><code class="php">LMongo::collection('users')->delete();
+//or
+LMongo::collection('users')->truncate();
+</code></pre>
+      </section>
+
+      <section id="pagination">
+        <div class="page-header">
+          <h2>Pagination</h2>
+        </div>
+
+        <p>LMongo has pagination support like Laravel's Query Builder.</p>
+
+<pre><code class="php">$users = LMongo::collection('users')->orderBy('name')->paginate(10);
+
+foreach ($users as $user)
+{
+  echo $user['name'];
+}
+
+echo $user->links();
+</code></pre>
+
+      </section>
+
+      <section id="eloquent">
+        <div class="page-header">
+          <h1>Eloquent for MongoDB</h1>
+        </div>
+        <p>
+          Most part of EloquentMongo is based on <a href="https://github.com/illuminate/database">Illuminate/Database</a>.
+          It's similar to Laravel 4's Eloquent, except few differences:
+        </p>
+        <ul>
+          <li>It has a <code>collection</code> property, not <code>table</code></li>
+          <li>Primary key field is <code>_id</code>, not <code>id</code></li>
+          <li>No Pivot collections for "Many To Many" relationship. Don't use "Many To Many" relationships on a large datasets <strong>*</strong></li>
+          <li><code>has()</code> method not exists</li>
+        </ul>
+        <p>See <a href="http://laravel.com/docs/eloquent">Eloquent Docs</a>.</p>
+
+        <div class="alert alert-block alert-error">
+          <strong>*</strong> Many to many relations require usually double the amount of hits to the database to keep both sides of the relation in sync, since keys are stored on both sides. Due to this they are slower and should be used with caution.
+        </div>
+      </section>
+    </div>
+    <footer class="footer">
+      <div class="container">
+        <p>Maintained by <a href="https://twitter.com/navruzm">Mustafa Navruz</a></p>
+        <p>Licensed under the <a href="http://cheeaun.mit-license.org/">MIT License</a>.</p>
+      </div>
+    </footer>
+
+    <script>!function (d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (!d.getElementById(id)) {
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "//platform.twitter.com/widgets.js";
+        fjs.parentNode.insertBefore(js, fjs);
+      }
+    }(document, "script", "twitter-wjs");
+    (function () {
+      var po = document.createElement('script');
+      po.type = 'text/javascript';
+      po.async = true;
+      po.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(po, s);
+
+
+      $('body').scrollspy({ target: '#navbar', offset:40 });
+    })();
+    </script>
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-968693-12', 'navruzm.github.io');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>
