@@ -163,6 +163,17 @@ $databases = $mongo->listDBs();
           <h2>Wheres</h2>
         </div>
 
+        <p><strong>Retrieving A Single Document From A Collection with _id</strong></p>
+
+<pre><code class="php">$user = LMongo::collection('users')->find('1000000000000000000000');
+
+var_dump($user['name']);
+</code></pre>
+
+        <div class="alert alert-block alert-warning">
+          You need convert your _id string to <code>MongoID</code> object, except <code>find()</code> method.
+        </div>
+
         <p><strong>Retrieving All Rows From A Collection</strong></p>
 
 <pre><code class="php">$users = LMongo::collection('users')->get();
