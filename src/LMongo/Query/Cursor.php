@@ -85,6 +85,16 @@ class Cursor implements Countable, IteratorAggregate {
 	}
 
 	/**
+	 * Get the items as an object.
+	 *
+	 * @return object
+	 */
+	public function toObject()
+	{
+		return json_decode(json_encode($this->toArray()), FALSE);
+	}
+
+	/**
 	 * Convert the cursor to string.
 	 *
 	 * @return string
