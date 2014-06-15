@@ -1,7 +1,7 @@
 LMongo [![Build Status](https://secure.travis-ci.org/navruzm/lmongo.png?branch=master)](https://travis-ci.org/navruzm/lmongo)
 ======
 
-LMongo is [MongoDB](http://www.mongodb.org/) package for [Laravel 4](http://laravel.com/). 
+LMongo is [MongoDB](http://www.mongodb.org/) package for [Laravel 4](http://laravel.com/).
 
 
 ### Installation
@@ -11,7 +11,7 @@ Add `navruzm/lmongo` as a requirement to composer.json:
 ```json
 {
     "require": {
-        "navruzm/lmongo": "*"
+        "navruzm/lmongo": "*@dev"
     }
 }
 ```
